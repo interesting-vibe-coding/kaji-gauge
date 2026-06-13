@@ -59,7 +59,16 @@ private struct DualRing: View {
         }
     }
     private var innerColor: Color { base.opacity(style == .mono ? 0.42 : 0.5) }
-    private var trackColor: Color { base.opacity(0.22) }
+    // Track: a faint tint of the base in mono (so the glyph sits quietly with the
+    // native monochrome icons), but a NEUTRAL warm-grey track in color — exactly
+    // like the popover ring. That way only the arcs read as persimmon and the
+    // ring breathes, instead of the whole glyph becoming a solid orange blob.
+    private var trackColor: Color {
+        switch style {
+        case .mono:  return base.opacity(0.22)
+        case .color: return t.track.opacity(0.7)
+        }
+    }
 
     private var fiveFraction: Double { provider?.usedFraction ?? 0 }
     private var weekFraction: Double { provider?.weekFraction ?? 0 }
