@@ -42,15 +42,23 @@ else
 	<key>CFBundleName</key><string>Kaji Gauge</string>
 	<key>CFBundleIdentifier</key><string>dev.kaji.gauge</string>
 	<key>CFBundleExecutable</key><string>KajiGauge</string>
+	<key>CFBundleIconFile</key><string>AppIcon</string>
 	<key>CFBundlePackageType</key><string>APPL</string>
-	<key>CFBundleShortVersionString</key><string>0.3.2</string>
-	<key>CFBundleVersion</key><string>5</string>
+	<key>CFBundleShortVersionString</key><string>0.3.3</string>
+	<key>CFBundleVersion</key><string>6</string>
 	<key>LSMinimumSystemVersion</key><string>13.0</string>
 	<key>LSUIElement</key><true/>
 	<key>NSHighResolutionCapable</key><true/>
 </dict>
 </plist>
 PLIST
+fi
+
+# App icon (Finder / Applications / installer — the agent has no dock icon).
+if [[ -f "Resources/AppIcon.icns" ]]; then
+	cp "Resources/AppIcon.icns" "${BUNDLE}/Contents/Resources/AppIcon.icns"
+else
+	echo "warning: Resources/AppIcon.icns missing — run scripts/make-icon.sh" >&2
 fi
 
 # Bundle the self-contained quota reader so the shipped app needs no external

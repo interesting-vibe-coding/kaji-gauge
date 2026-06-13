@@ -159,7 +159,9 @@ struct GaugeRowView: View {
 
     private var header: some View {
         HStack(spacing: 6) {
-            Circle().fill(t.sun).frame(width: 7, height: 7)
+            // Theme-aware accent dot: persimmon by day (Sun), ember gold by
+            // night (Ember) — matches the rings instead of staying orange.
+            Circle().fill(t.gold).frame(width: 7, height: 7)
             Text("Kaji")
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .foregroundColor(t.cream)
