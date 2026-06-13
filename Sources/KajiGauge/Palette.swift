@@ -48,8 +48,8 @@ struct KajiTheme {
         mute:  Color(hex: 0x8A8174),
         ash:   Color(hex: 0xB5AB9C),
         track: Color(hex: 0xE2D8C6),
-        gold:  Color(hex: 0xA16207),
-        amber: Color(hex: 0xB45309),
+        gold:  Color(hex: 0xF25C05), // Kaji persimmon — the ring on paper (ochre felt off)
+        amber: Color(hex: 0xC2410C), // >=80%: deeper persimmon, same family
         sun:   Color(hex: 0xF25C05)
     )
 }
