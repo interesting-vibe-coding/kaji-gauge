@@ -170,10 +170,11 @@ final class DraggablePanel: NSPanel {
 // MARK: - ResizeHandle
 //
 // An NSView that owns one of the eight panel edges/corners. The hit zone is
-// 16pt wide; visually we draw a 1.5pt track line on the INNER edge (toward
-// the panel center) so the user can see "here is the grab zone" without the
-// chrome competing with the SwiftUI content. On hover the track thickens to
-// 2.5pt and switches to the Kaji gold so the affordance is unmistakable.
+// 16pt wide. Cursor changes on enter so the user reads the affordance from
+// the cursor shape alone — we deliberately paint NOTHING here, so the chrome
+// stays out of the way of the SwiftUI content. Earlier iterations drew a 1.5pt
+// track + a gold hover line; both were dropped after user feedback said they
+// felt more like glitches than affordances.
 final class ResizeHandle: NSView {
     enum Kind {
         case topLeft, topRight, bottomLeft, bottomRight
@@ -185,33 +186,13 @@ final class ResizeHandle: NSView {
     private var startSize: NSSize = .zero
     private var startFrame: NSRect = .zero
 
-    /// Hover state — set by the tracking area, read by draw(_:). The view
-    /// repaints on every change so the line thickens + recolors smoothly.
-    private var hovered = false
-
-    /// Idle track + hover gold, resolved once per scheme. We keep both modes
-    /// (light + dark) so theme switches in macOS Auto just trigger a redraw.
-    private static let trackDark  = NSColor(srgbRed: 0x3A/255, green: 0x30/255, blue: 0x26/255, alpha: 0.60)
-    private static let trackLight = NSColor(srgbRed: 0xE2/255, green: 0xD8/255, blue: 0xC6/255, alpha: 0.70)
-    private static let goldDark   = NSColor(srgbRed: 0xD8/255, green: 0xA6/255, blue: 0x57/255, alpha: 1.0)
-    private static let goldLight  = NSColor(srgbRed: 0xF2/255, green: 0x5C/255, blue: 0x05/255, alpha: 1.0)
-
     init(kind: Kind, panel: NSPanel) {
         self.kind = kind
         self.panel = panel
         super.init(frame: .zero)
-        // Transparent base — the visual is purely the inner-edge track line.
+        // Transparent — cursor change is the only affordance.
         wantsLayer = true
         layer?.backgroundColor = .clear
-        // Add the tracking area so mouseEntered/Exited fire while we're in
-        // the key window. The handle sits above the SwiftUI host so we own
-        // the hover events; the rest of the panel doesn't trigger us.
-        addTrackingArea(NSTrackingArea(
-            rect: bounds,
-            options: [.activeInKeyWindow, .mouseEnteredAndExited, .inVisibleRect],
-            owner: self,
-            userInfo: nil
-        ))
     }
     required init?(coder: NSCoder) { fatalError() }
 
@@ -227,68 +208,8 @@ final class ResizeHandle: NSView {
         addCursorRect(bounds, cursor: cursor())
     }
 
-    override func mouseEntered(with event: NSEvent) {
-        hovered = true
-        needsDisplay = true
-    }
-
-    override func mouseExited(with event: NSEvent) {
-        hovered = false
-        needsDisplay = true
-    }
-
     override func draw(_ dirtyRect: NSRect) {
-        super.draw(dirtyRect)
-        let isDark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        let color: NSColor
-        if hovered {
-            color = isDark ? Self.goldDark : Self.goldLight
-        } else {
-            color = isDark ? Self.trackDark : Self.trackLight
-        }
-        let lineWidth: CGFloat = hovered ? 2.5 : 1.5
-        let path = NSBezierPath()
-        path.lineWidth = lineWidth
-        path.lineCapStyle = .round
-
-        // Inset the line by half the stroke so it stays inside our bounds;
-        // the cursor rect covers the full 16pt zone regardless.
-        let inset: CGFloat = lineWidth / 2
-        let b = bounds
-        switch kind {
-        case .top:
-            // Horizontal line near the bottom of the top handle (= inner edge).
-            path.move(to: NSPoint(x: inset, y: inset))
-            path.line(to: NSPoint(x: b.maxX - inset, y: inset))
-        case .bottom:
-            path.move(to: NSPoint(x: inset, y: b.maxY - inset))
-            path.line(to: NSPoint(x: b.maxX - inset, y: b.maxY - inset))
-        case .left:
-            path.move(to: NSPoint(x: inset, y: inset))
-            path.line(to: NSPoint(x: inset, y: b.maxY - inset))
-        case .right:
-            path.move(to: NSPoint(x: b.maxX - inset, y: inset))
-            path.line(to: NSPoint(x: b.maxX - inset, y: b.maxY - inset))
-        case .topLeft:
-            // L-shape: vertical leg (inner edge) + horizontal leg (inner edge).
-            path.move(to: NSPoint(x: inset, y: b.maxY - inset))
-            path.line(to: NSPoint(x: inset, y: inset))
-            path.line(to: NSPoint(x: b.maxX - inset, y: inset))
-        case .topRight:
-            path.move(to: NSPoint(x: inset, y: inset))
-            path.line(to: NSPoint(x: b.maxX - inset, y: inset))
-            path.line(to: NSPoint(x: b.maxX - inset, y: b.maxY - inset))
-        case .bottomLeft:
-            path.move(to: NSPoint(x: inset, y: inset))
-            path.line(to: NSPoint(x: inset, y: b.maxY - inset))
-            path.line(to: NSPoint(x: b.maxX - inset, y: b.maxY - inset))
-        case .bottomRight:
-            path.move(to: NSPoint(x: b.maxX - inset, y: inset))
-            path.line(to: NSPoint(x: b.maxX - inset, y: b.maxY - inset))
-            path.line(to: NSPoint(x: inset, y: b.maxY - inset))
-        }
-        color.setStroke()
-        path.stroke()
+        // Intentional no-op — see file header.
     }
 
     override func mouseDown(with event: NSEvent) {

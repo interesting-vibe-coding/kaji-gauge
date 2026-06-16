@@ -9,9 +9,16 @@ import SwiftUI
 //   - Below: the provider NAME, then two captions — the 5h reset countdown and
 //     "7d {week}% · {reset}" — so "how long until reset" is answered for BOTH
 //     windows right here in the popover. Localized EN / 中文.
+//
+// `showRemaining` flips BOTH the ring trim direction (1-usedFraction) and the
+// center % text (100-used) — "0% means full" instead of "100% means full".
+// The "near limit" threshold is ALWAYS based on USED, so an empty (remaining
+// 100%) ring never reads as amber; a low-remaining ring always does.
 struct RingGauge: View {
     let provider: ProviderView
     var lang: Lang = .en
+    /// When true, the ring + % read as REMAINING (100% used → empty ring + 0%).
+    var showRemaining: Bool = false
 
     /// Outer ring diameter. Scales the ring + the logo + the big % together so
     /// the visual mass stays proportional when the floating HUD is resized.
@@ -28,6 +35,9 @@ struct RingGauge: View {
     private var logoSize: CGFloat      { ringSize * (16.0 / 84.0) }
     private var percentFont: CGFloat   { ringSize * (22.0 / 84.0) }
 
+    /// "Near limit" is always USED-based regardless of display direction —
+    /// we don't want the ring color to flip just because the user toggled
+    /// between used/remaining. (>=80% used = amber in both modes.)
     private var arcColor: Color { provider.isNearLimit ? t.amber : t.gold }
     private var weekColor: Color { provider.weekNearLimit ? t.amber : t.gold.opacity(0.55) }
 
@@ -35,9 +45,21 @@ struct RingGauge: View {
         provider.isNearLimit ? baseLineWidth + (ringSize * (3.0 / 84.0)) : baseLineWidth
     }
 
+    /// Fraction of the ring's TRIM, given the current display direction.
+    private var trimFraction: Double {
+        showRemaining ? 1.0 - provider.usedFraction : provider.usedFraction
+    }
+
+    /// 7-day inner ring, also direction-flipped for symmetry.
+    private var weekTrimFraction: Double {
+        showRemaining ? 1.0 - provider.weekFraction : provider.weekFraction
+    }
+
+    /// Center % text — shown as USED or REMAINING per the toggle.
     private var percentText: String {
         guard let p = provider.fiveHourPercent else { return "\u{2014}" }
-        return "\(Int(p.rounded()))"
+        let shown = showRemaining ? (100.0 - p) : p
+        return "\(Int(shown.rounded()))"
     }
 
     private var numberColor: Color { provider.isNearLimit ? t.amber : t.cream }
@@ -50,7 +72,7 @@ struct RingGauge: View {
                     .stroke(t.track.opacity(0.5),
                             style: StrokeStyle(lineWidth: baseLineWidth, lineCap: .round))
                 Circle()
-                    .trim(from: 0, to: provider.usedFraction)
+                    .trim(from: 0, to: trimFraction)
                     .stroke(arcColor,
                             style: StrokeStyle(lineWidth: valueLineWidth, lineCap: .round))
                     .rotationEffect(.degrees(-90))
@@ -61,7 +83,7 @@ struct RingGauge: View {
                             style: StrokeStyle(lineWidth: innerLineWidth, lineCap: .round))
                     .padding(innerInset)
                 Circle()
-                    .trim(from: 0, to: provider.weekFraction)
+                    .trim(from: 0, to: weekTrimFraction)
                     .stroke(weekColor,
                             style: StrokeStyle(lineWidth: innerLineWidth, lineCap: .round))
                     .rotationEffect(.degrees(-90))
@@ -82,7 +104,9 @@ struct RingGauge: View {
     }
 
     private var label: some View {
-        let week = provider.weekPercent.map { "\(Int($0.rounded()))%" } ?? "\u{2014}"
+        let weekRaw = provider.weekPercent
+        let weekDisplayed = weekRaw.map { showRemaining ? (100 - $0) : $0 }
+        let week = weekDisplayed.map { "\(Int($0.rounded()))%" } ?? "\u{2014}"
         let fiveReset = ResetFormat.phrase(provider.resetDate, lang)
         let weekReset = ResetFormat.phrase(provider.weekResetDate, lang)
         // When the ring is small, drop the "5h · " and "周 {n}% · " prefixes.

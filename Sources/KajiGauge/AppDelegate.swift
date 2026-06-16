@@ -166,6 +166,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         styleItem.submenu = styleMenu
         menu.addItem(styleItem)
 
+        // Usage submenu (Used / Remaining), radio-checked. Mirrors the popover
+        // footer segment so the same mode can be flipped without opening the
+        // popover (right-clicking the menubar glyph is faster).
+        let usageItem = NSMenuItem(title: L10n.t(.usage, lang), action: nil, keyEquivalent: "")
+        let usageMenu = NSMenu()
+        let usedItem = NSMenuItem(title: L10n.t(.showUsed, lang),
+                                  action: #selector(setShowUsed), keyEquivalent: "")
+        usedItem.target = self
+        usedItem.state = prefs.showRemaining ? .off : .on
+        usageMenu.addItem(usedItem)
+        let remItem = NSMenuItem(title: L10n.t(.showRemaining, lang),
+                                 action: #selector(setShowRemaining), keyEquivalent: "")
+        remItem.target = self
+        remItem.state = prefs.showRemaining ? .on : .off
+        usageMenu.addItem(remItem)
+        usageItem.submenu = usageMenu
+        menu.addItem(usageItem)
+
         // Language toggle — shows the OTHER language as the action label.
         let langItem = NSMenuItem(title: "\(L10n.t(.language, lang)): \(lang.toggled.label)",
                                   action: #selector(toggleLanguage),
@@ -219,6 +237,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func setMenubarColor() {
         prefs.menubarStyle = .color
+    }
+
+    @objc private func setShowUsed() {
+        prefs.showRemaining = false
+    }
+
+    @objc private func setShowRemaining() {
+        prefs.showRemaining = true
     }
 
     @objc private func toggleLanguage() {
