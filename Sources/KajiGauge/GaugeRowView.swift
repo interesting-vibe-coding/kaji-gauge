@@ -45,16 +45,29 @@ struct GaugeRowView: View {
         store.providers.filter { prefs.isVisible($0.id) }
     }
 
-    /// Pick a ring diameter that distributes the available width evenly across
-    /// the visible rings (minus the HStack spacing). Clamped so small widths
-    /// still read and large widths don't bloat the ring into a coin.
-    private func ringSize(forAvailable width: CGFloat) -> CGFloat {
-        let n = max(1, CGFloat(shown.count))
-        let spacing: CGFloat = 16
-        let padding: CGFloat = 28   // 14 on each side
-        let usable = max(0, width - padding - spacing * (n - 1))
-        let raw = usable / n
-        return min(max(raw, minRing), maxRing)
+    /// Pick a ring diameter from BOTH width and height so the gauge never
+    /// overflows either axis. When the panel is tall+narrow we wrap to a
+    /// vertical stack; the ring then has the full row height to grow into.
+    /// - Parameter isTall: true → LazyVStack mode (one ring per row).
+    private func ringSize(width w: CGFloat, height h: CGFloat,
+                          n: Int, isTall: Bool) -> CGFloat {
+        guard n > 0 else { return minRing }
+        let rowSpacing: CGFloat = isTall ? 10 : 16
+        let padding: CGFloat = 28
+        // Chrome above (header) + below (label) the ring within each cell.
+        let verticalChrome: CGFloat = 22 + 38 + 12
+        let perRingW = max(0, (w - padding - rowSpacing * CGFloat(n - 1)) / CGFloat(n))
+        let rowsHeight = max(0, h - verticalChrome)
+        let perRowH = isTall
+            ? (rowsHeight - rowSpacing * CGFloat(n - 1)) / CGFloat(n)
+            : rowsHeight
+        let maxFromHeight = max(0, perRowH - 38 - 7)   // label + VStack spacing
+        let raw = min(perRingW, maxFromHeight)
+        // Floor: when the panel is too narrow for n rings at minRing, fall
+        // back to whatever fits so the user can see all rings even at 220pt.
+        let effectiveMin = max(32, min(minRing,
+                                       (w - padding) / CGFloat(n) - rowSpacing))
+        return min(max(raw, effectiveMin), maxRing)
     }
 
     var body: some View {
@@ -77,18 +90,40 @@ struct GaugeRowView: View {
     @ViewBuilder
     private var ringsRow: some View {
         if expandToFill {
-            // GeometryReader detects the panel width; rings scale together.
+            // GeometryReader drives both axis. Pick a layout that matches the
+            // panel's actual aspect: wide/short → HStack row; tall/narrow →
+            // LazyVStack (one ring per row) so label text never gets clipped.
             GeometryReader { geo in
-                let size = ringSize(forAvailable: geo.size.width)
-                HStack(alignment: .top, spacing: 16) {
-                    ForEach(shown) { provider in
-                        RingGauge(provider: provider, lang: prefs.language,
-                                  ringSize: size)
+                let n = max(1, shown.count)
+                // Go tall when the row would overflow horizontally. 130 ≈
+                // minRing (64) + padding per slot + label width; if total
+                // slots > available width, wrap to one-per-row.
+                let slotNeeded: CGFloat = 130
+                let totalNeeded = slotNeeded * CGFloat(n) + 16 * CGFloat(n - 1) + 28
+                let isTall = n > 1 && geo.size.width < totalNeeded
+                let size = ringSize(width: geo.size.width,
+                                    height: geo.size.height,
+                                    n: n, isTall: isTall)
+                Group {
+                    if isTall {
+                        LazyVStack(alignment: .leading, spacing: 10) {
+                            ForEach(shown) { provider in
+                                RingGauge(provider: provider, lang: prefs.language,
+                                          ringSize: size)
+                            }
+                        }
+                        .scrollDisabled(true)
+                    } else {
+                        HStack(alignment: .top, spacing: 16) {
+                            ForEach(shown) { provider in
+                                RingGauge(provider: provider, lang: prefs.language,
+                                          ringSize: size)
+                            }
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(height: ringSize(forAvailable: maxRing * CGFloat(shown.count)) + 32)
         } else {
             HStack(alignment: .top, spacing: 16) {
                 ForEach(shown) { provider in
@@ -216,14 +251,15 @@ struct GaugeRowView: View {
     // Header chrome: tighter on the right so the legend recedes instead of
     // claiming equal weight with the title. Size scales with visible-ring
     // count (more rings = same; fewer rings = smaller + closer) and shrinks
-    // further under tight widths via minimumScaleFactor.
+    // further under tight widths via minimumScaleFactor. The legend is the
+    // elastic item: layoutPriority(0) makes it absorb all leftover pressure,
+    // and minimumScaleFactor lets it shrink down before any text truncates.
     private var header: some View {
-        let legend = store.lastError != nil && !store.providers.isEmpty
+        let isError = store.lastError != nil && !store.providers.isEmpty
+        let legend = isError
             ? L10n.t(.stale, prefs.language)
             : "5h \u{00B7} \(L10n.t(.week, prefs.language))"
-        let legendColor: Color = store.lastError != nil && !store.providers.isEmpty
-            ? t.amber.opacity(0.9)
-            : t.ash
+        let legendColor: Color = isError ? t.amber.opacity(0.9) : t.ash
         // Scale: 0/1 ring → 0.78; 2 rings → 0.90; 3+ → 1.0. Recedes when sparse.
         let density = max(1, shown.count)
         let scale: CGFloat = density >= 3 ? 1.0 : (density == 2 ? 0.90 : 0.78)
@@ -234,18 +270,20 @@ struct GaugeRowView: View {
             Text("Kaji")
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .foregroundColor(t.cream)
+                .layoutPriority(2)
             Text("Gauge")
                 .font(.system(size: 12, weight: .regular, design: .rounded))
                 .foregroundColor(t.mute)
+                .layoutPriority(1)
             Spacer(minLength: 4)
             Text(legend)
                 .font(.system(size: 10))
                 .foregroundColor(legendColor)
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .fixedSize(horizontal: false, vertical: true)
-                .scaleEffect(scale, anchor: .trailing)
+                .minimumScaleFactor(0.6)
+                .layoutPriority(0)
         }
+        .scaleEffect(scale, anchor: .trailing)
     }
 
     private var emptyState: some View {
