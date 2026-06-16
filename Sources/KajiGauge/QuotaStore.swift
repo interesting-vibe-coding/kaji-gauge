@@ -195,12 +195,11 @@ final class QuotaStore: ObservableObject {
     }
 
     private func ingest(_ snap: QuotaSnapshot) {
-        // Only show providers that have a `limits` block (a quota to gauge).
-        // Providers like kiro/opencode with no limits are skipped from the
-        // rings — there is nothing to ring-gauge.
-        let keys = Providers.sorted(snap.keys.filter {
-            snap[$0]?.limits != nil && Providers.isVisible($0)
-        })
+        // Show every visible provider — with OR without a `limits` block.
+        // Providers without limits (e.g. minimax, today) still render as a
+        // ring with "—" in the center, so the slot is reserved. If we ever
+        // need to hide a no-limits provider, drop it from `Providers.visible`.
+        let keys = Providers.sorted(snap.keys.filter { Providers.isVisible($0) })
 
         var views: [ProviderView] = []
         for key in keys {
