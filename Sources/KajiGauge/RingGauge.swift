@@ -85,21 +85,33 @@ struct RingGauge: View {
         let week = provider.weekPercent.map { "\(Int($0.rounded()))%" } ?? "\u{2014}"
         let fiveReset = ResetFormat.phrase(provider.resetDate, lang)
         let weekReset = ResetFormat.phrase(provider.weekResetDate, lang)
+        // When the ring is small, drop the "5h · " and "周 {n}% · " prefixes.
+        // The rings themselves encode the window visually; the countdown is
+        // the load-bearing info and must remain readable in full.
+        let narrow = ringSize < 78
         return VStack(spacing: 2) {
             Text(provider.displayName)
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .foregroundColor(t.cream)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
             // 5h reset countdown (the outer ring's window).
-            (Text("5h \u{00B7} ").foregroundColor(t.mute)
+            (Text(narrow ? "" : "5h \u{00B7} ").foregroundColor(t.mute)
                 + Text(fiveReset).foregroundColor(t.gold))
-                .font(.system(size: 10))
+                .font(.system(size: 10, weight: .medium))
                 .lineLimit(1)
+                .truncationMode(.tail)
+                .minimumScaleFactor(0.85)
             // 7d used % + its own reset countdown (the inner ring's window).
-            (Text("\(L10n.t(.week, lang)) \(week) \u{00B7} ").foregroundColor(t.mute)
+            (Text(narrow ? "" : "\(L10n.t(.week, lang)) \(week) \u{00B7} ")
+                .foregroundColor(t.mute)
                 + Text(weekReset).foregroundColor(t.gold.opacity(0.85)))
-                .font(.system(size: 10))
+                .font(.system(size: 10, weight: .medium))
                 .lineLimit(1)
+                .truncationMode(.tail)
+                .minimumScaleFactor(0.85)
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 
