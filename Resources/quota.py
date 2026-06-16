@@ -442,20 +442,35 @@ def fmt_last(ts):
     return ago(ts)
 
 
+def minimax():
+    """MiniMax: API-key based, no local session files at the moment.
+
+    Returns (sessions_today=0, tokens_today=None, last_active_ts=None). The
+    ring renders an empty arc with the brand mark + "—" until a live quota
+    source lands (account-level windows need a MiniMax endpoint we don't
+    have yet). Keeping the slot in `collect()` so the SwiftUI side can show
+    it as a third ring out of the box.
+    """
+    return 0, None, None
+
+
 def collect():
     """Per-harness tuples (name, sessions, tokens, last, limits|None, by_project).
 
     Limits: live account windows (five_hour/seven_day used_percent) — claude
     via the oauth usage endpoint, codex via app-server; codex falls back to
-    the freshest session file when the live call fails.
+    the freshest session file when the live call fails. MiniMax is reserved
+    with no limits yet (placeholder — see `minimax()`).
     """
     c_sess, c_tok, c_last, c_proj, c_ctx = claude_code()
     x_sess, x_tok, x_last, x_file_limits, x_proj, x_ctx = codex()
+    m_sess, m_tok, m_last = minimax()
     return [
-        ("claude", c_sess, c_tok, c_last, claude_limits(), c_proj, c_ctx),
-        ("kiro",   *kiro(), None, {}, {}),
+        ("claude",  c_sess, c_tok, c_last, claude_limits(), c_proj, c_ctx),
+        ("kiro",    *kiro(), None, {}, {}),
         ("opencode", *opencode(), None, {}, {}),
-        ("codex", x_sess, x_tok, x_last, codex_limits() or x_file_limits, x_proj, x_ctx),
+        ("codex",   x_sess, x_tok, x_last, codex_limits() or x_file_limits, x_proj, x_ctx),
+        ("minimax", m_sess, m_tok, m_last, None, {}, {}),
     ]
 
 

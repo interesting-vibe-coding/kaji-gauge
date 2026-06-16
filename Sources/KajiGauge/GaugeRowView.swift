@@ -157,8 +157,21 @@ struct GaugeRowView: View {
         )
     }
 
+    // Header chrome: tighter on the right so the legend recedes instead of
+    // claiming equal weight with the title. Size scales with visible-ring
+    // count (more rings = same; fewer rings = smaller + closer) and shrinks
+    // further under tight widths via minimumScaleFactor.
     private var header: some View {
-        HStack(spacing: 6) {
+        let legend = store.lastError != nil && !store.providers.isEmpty
+            ? L10n.t(.stale, prefs.language)
+            : "5h \u{00B7} \(L10n.t(.week, prefs.language))"
+        let legendColor: Color = store.lastError != nil && !store.providers.isEmpty
+            ? t.amber.opacity(0.9)
+            : t.ash
+        // Scale: 0/1 ring → 0.78; 2 rings → 0.90; 3+ → 1.0. Recedes when sparse.
+        let density = max(1, shown.count)
+        let scale: CGFloat = density >= 3 ? 1.0 : (density == 2 ? 0.90 : 0.78)
+        return HStack(spacing: 6) {
             // Theme-aware accent dot: persimmon by day (Sun), ember gold by
             // night (Ember) — matches the rings instead of staying orange.
             Circle().fill(t.gold).frame(width: 7, height: 7)
@@ -168,17 +181,14 @@ struct GaugeRowView: View {
             Text("Gauge")
                 .font(.system(size: 12, weight: .regular, design: .rounded))
                 .foregroundColor(t.mute)
-            Spacer(minLength: 18)
-            if store.lastError != nil, !store.providers.isEmpty {
-                Text(L10n.t(.stale, prefs.language))
-                    .font(.system(size: 10))
-                    .foregroundColor(t.amber.opacity(0.9))
-            } else {
-                // Legend for the double ring: outer 5h, inner 7d.
-                Text("5h \u{00B7} \(L10n.t(.week, prefs.language))")
-                    .font(.system(size: 10))
-                    .foregroundColor(t.ash)
-            }
+            Spacer(minLength: 4)
+            Text(legend)
+                .font(.system(size: 10))
+                .foregroundColor(legendColor)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .fixedSize(horizontal: false, vertical: true)
+                .scaleEffect(scale, anchor: .trailing)
         }
     }
 
