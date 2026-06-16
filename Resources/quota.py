@@ -442,14 +442,62 @@ def fmt_last(ts):
     return ago(ts)
 
 
-def minimax():
-    """MiniMax: API-key based, no local session files at the moment.
+def _fetch_minimax_limits():
+    """MiniMax Token Plan usage via the `mmx` CLI.
 
-    Returns (sessions_today=0, tokens_today=None, last_active_ts=None). The
-    ring renders an empty arc with the brand mark + "—" until a live quota
-    source lands (account-level windows need a MiniMax endpoint we don't
-    have yet). Keeping the slot in `collect()` so the SwiftUI side can show
-    it as a third ring out of the box.
+    `mmx quota show --output json` returns a per-model `model_remains[]` array.
+    We pick the "general" model (text quota) and read:
+      - 5h window:  used% = 100 - current_interval_remaining_percent
+      - 7d window:  used% = 100 - current_weekly_remaining_percent
+      - resets:     end_time / weekly_end_time (ms unix epoch → seconds float,
+                    the ResetTimestamp decoder on the Swift side accepts both)
+
+    On auth failure (no `mmx` creds), unrecognised response, or any subprocess
+    error we return None and the store shows the MiniMax ring empty. Same
+    stale-cache behavior as the other providers.
+    """
+    try:
+        proc = subprocess.run(
+            ["mmx", "quota", "show", "--output", "json", "--quiet"],
+            capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if proc.returncode != 0:
+        return None
+    try:
+        d = json.loads(proc.stdout)
+    except Exception:
+        return None
+    out = {}
+    for entry in (d.get("model_remains") or []):
+        if not isinstance(entry, dict) or entry.get("model_name") != "general":
+            continue
+        iv_remaining = entry.get("current_interval_remaining_percent")
+        wk_remaining = entry.get("current_weekly_remaining_percent")
+        if iv_remaining is not None:
+            out["five_hour_used_percent"] = max(0.0, 100.0 - float(iv_remaining))
+            end_ms = entry.get("end_time")
+            if isinstance(end_ms, (int, float)):
+                out["five_hour_resets_at"] = float(end_ms) / 1000.0
+        if wk_remaining is not None:
+            out["seven_day_used_percent"] = max(0.0, 100.0 - float(wk_remaining))
+            wk_end_ms = entry.get("weekly_end_time")
+            if isinstance(wk_end_ms, (int, float)):
+                out["seven_day_resets_at"] = float(wk_end_ms) / 1000.0
+        break
+    return out or None
+
+
+def minimax_limits():
+    return _limits_cached("minimax-limits-cache.json", _fetch_minimax_limits)
+
+
+def minimax():
+    """MiniMax: no local session files; quota lives server-side (mmx CLI).
+
+    Returns (sessions_today=0, tokens_today=None, last_active_ts=None) — the
+    ring's `limits` block is filled by `minimax_limits()` (cached) which the
+    Swift side surfaces as the 5h/7d percentages.
     """
     return 0, None, None
 
@@ -458,9 +506,9 @@ def collect():
     """Per-harness tuples (name, sessions, tokens, last, limits|None, by_project).
 
     Limits: live account windows (five_hour/seven_day used_percent) — claude
-    via the oauth usage endpoint, codex via app-server; codex falls back to
-    the freshest session file when the live call fails. MiniMax is reserved
-    with no limits yet (placeholder — see `minimax()`).
+    via the oauth usage endpoint, codex via app-server (or freshest session
+    file fallback), minimax via the `mmx` CLI; all cached on disk with the
+    same TTL.
     """
     c_sess, c_tok, c_last, c_proj, c_ctx = claude_code()
     x_sess, x_tok, x_last, x_file_limits, x_proj, x_ctx = codex()
@@ -470,7 +518,7 @@ def collect():
         ("kiro",    *kiro(), None, {}, {}),
         ("opencode", *opencode(), None, {}, {}),
         ("codex",   x_sess, x_tok, x_last, codex_limits() or x_file_limits, x_proj, x_ctx),
-        ("minimax", m_sess, m_tok, m_last, None, {}, {}),
+        ("minimax", m_sess, m_tok, m_last, minimax_limits(), {}, {}),
     ]
 
 

@@ -15,6 +15,20 @@ struct GaugeRowView: View {
 
     var controls: Controls? = nil
 
+    /// When true the view expands to fill its container (used by the resizable
+    /// floating HUD — rings scale up with the panel width). Popover leaves
+    /// this false so the view still hugs its content and the popover stays
+    /// tight around its rings.
+    var expandToFill: Bool = false
+
+    /// Minimum / maximum ring diameter when scaling with the panel. Keeps the
+    /// gauge readable at small widths and prevents over-stretch at large ones.
+    private let minRing: CGFloat = 64
+    private let maxRing: CGFloat = 160
+    /// Default ring size when the view is hugging its content (popover, or a
+    /// panel that's at its natural fitting size).
+    private let defaultRing: CGFloat = 84
+
     struct Controls {
         let panelVisible: Bool
         let onTogglePanel: () -> Void
@@ -31,6 +45,18 @@ struct GaugeRowView: View {
         store.providers.filter { prefs.isVisible($0.id) }
     }
 
+    /// Pick a ring diameter that distributes the available width evenly across
+    /// the visible rings (minus the HStack spacing). Clamped so small widths
+    /// still read and large widths don't bloat the ring into a coin.
+    private func ringSize(forAvailable width: CGFloat) -> CGFloat {
+        let n = max(1, CGFloat(shown.count))
+        let spacing: CGFloat = 16
+        let padding: CGFloat = 28   // 14 on each side
+        let usable = max(0, width - padding - spacing * (n - 1))
+        let raw = usable / n
+        return min(max(raw, minRing), maxRing)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             header
@@ -38,18 +64,48 @@ struct GaugeRowView: View {
             if shown.isEmpty {
                 emptyState
             } else {
-                HStack(alignment: .top, spacing: 16) {
-                    ForEach(shown) { provider in
-                        RingGauge(provider: provider, lang: prefs.language)
-                    }
-                }
+                ringsRow
             }
 
             if let controls { footer(controls) }
         }
         .padding(14)
         .background(background)
-        .fixedSize()
+        .modifier(FitOrFill(expand: expandToFill))
+    }
+
+    @ViewBuilder
+    private var ringsRow: some View {
+        if expandToFill {
+            // GeometryReader detects the panel width; rings scale together.
+            GeometryReader { geo in
+                let size = ringSize(forAvailable: geo.size.width)
+                HStack(alignment: .top, spacing: 16) {
+                    ForEach(shown) { provider in
+                        RingGauge(provider: provider, lang: prefs.language,
+                                  ringSize: size)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(height: ringSize(forAvailable: maxRing * CGFloat(shown.count)) + 32)
+        } else {
+            HStack(alignment: .top, spacing: 16) {
+                ForEach(shown) { provider in
+                    RingGauge(provider: provider, lang: prefs.language,
+                              ringSize: defaultRing)
+                }
+            }
+        }
+    }
+
+    /// `.fixedSize()` for the popover (hugs content) → removed when the panel
+    /// mode is on (fills the panel, rings scale with width).
+    private struct FitOrFill: ViewModifier {
+        let expand: Bool
+        func body(content: Content) -> some View {
+            if expand { content } else { content.fixedSize() }
+        }
     }
 
     // MARK: Footer (settings — popover only)
