@@ -6,13 +6,14 @@ import Foundation
 // for real brand marks later. This map is the single place to add/remove a
 // provider's display config; the data layer surfaces whatever quota.py emits.
 enum Providers {
-    /// Unicode FALLBACK marks. claude / codex / gemini now render real vector
-    /// logos via `ProviderLogo` (Claude burst / OpenAI knot / Gemini spark);
-    /// these marks are only used for providers without a vector logo.
+    /// Unicode FALLBACK marks. claude / codex / gemini / minimax render real
+    /// vector logos via `ProviderLogo` (Claude burst / OpenAI knot / Gemini
+    /// spark / MiniMax M monogram); these marks are only used for providers
+    /// without a vector logo.
     static let marks: [String: String] = [
         "claude":  "\u{2733}",   // ✳ burst — hints Claude's radial mark
         "codex":   "\u{273B}",   // ✻ six-petalled florette — hints OpenAI knot
-        "minimax": "\u{272A}",   // ✪ circled white star — MiniMax mark
+        "minimax": "\u{272A}",   // ✪ circled white star — kept as fallback
         "gemini":  "\u{2726}",   // ✦ four-point spark — hints Gemini
         "kiro":    "\u{25C9}",   // ◉
         "opencode": "\u{25B3}",  // △
@@ -34,9 +35,8 @@ enum Providers {
 
     /// Providers we currently surface as rings. gemini / kiro / opencode are
     /// intentionally hidden for now — focus on claude + codex + minimax.
-    /// MiniMax has no live local quota yet (no per-session files / quota API
-    /// wired), so it renders an empty ring with the brand mark — the slot is
-    /// reserved for when the API integration lands.
+    /// MiniMax quota is wired through the `mmx` CLI (see `quota.py`'s
+    /// `_fetch_minimax_limits`).
     static let visible: Set<String> = ["claude", "codex", "minimax"]
     static func isVisible(_ key: String) -> Bool { visible.contains(key) }
 

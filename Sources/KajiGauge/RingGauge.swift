@@ -13,20 +13,26 @@ struct RingGauge: View {
     let provider: ProviderView
     var lang: Lang = .en
 
+    /// Outer ring diameter. Scales the ring + the logo + the big % together so
+    /// the visual mass stays proportional when the floating HUD is resized.
+    /// 84 = the legacy fixed size used by the popover + first-launch HUD.
+    var ringSize: CGFloat = 84
+
     @Environment(\.colorScheme) private var scheme
     private var t: KajiTheme { .resolve(scheme) }
 
-    // Geometry — compact for a desktop HUD.
-    private let ringSize: CGFloat = 84
-    private let baseLineWidth: CGFloat = 10
-    private let innerLineWidth: CGFloat = 5
-    private let innerInset: CGFloat = 13   // pulls the 7d ring inside the 5h ring
+    // All ring geometry is derived from ringSize so the gauge scales as a unit.
+    private var baseLineWidth: CGFloat { ringSize * (10.0 / 84.0) }
+    private var innerLineWidth: CGFloat { ringSize * (5.0 / 84.0) }
+    private var innerInset: CGFloat    { ringSize * (13.0 / 84.0) }
+    private var logoSize: CGFloat      { ringSize * (16.0 / 84.0) }
+    private var percentFont: CGFloat   { ringSize * (22.0 / 84.0) }
 
     private var arcColor: Color { provider.isNearLimit ? t.amber : t.gold }
     private var weekColor: Color { provider.weekNearLimit ? t.amber : t.gold.opacity(0.55) }
 
     private var valueLineWidth: CGFloat {
-        provider.isNearLimit ? baseLineWidth + 3 : baseLineWidth
+        provider.isNearLimit ? baseLineWidth + (ringSize * (3.0 / 84.0)) : baseLineWidth
     }
 
     private var percentText: String {
@@ -62,9 +68,9 @@ struct RingGauge: View {
                     .padding(innerInset)
 
                 VStack(spacing: 1) {
-                    ProviderLogo(key: provider.id, color: arcColor, size: 16)
+                    ProviderLogo(key: provider.id, color: arcColor, size: logoSize)
                     Text(percentText)
-                        .font(.system(size: 22, weight: .semibold, design: .rounded))
+                        .font(.system(size: percentFont, weight: .semibold, design: .rounded))
                         .foregroundColor(numberColor)
                         .monospacedDigit()
                 }

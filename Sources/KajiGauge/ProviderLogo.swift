@@ -7,6 +7,9 @@ import SwiftUI
 //   - Claude  → a radial burst of tapered lines (stroked).
 //   - OpenAI  → the official simple-icons knot (filled path, needs SVG arcs).
 //   - Gemini  → the four-point spark (filled path).
+//   - MiniMax → geometric M monogram (filled path). MiniMax has no published
+//     icon — wordmark only — so we draw a sans-serif M in the same visual
+//     weight as the OpenAI / Gemini marks.
 // Anything else falls back to its Unicode mark from `Providers`.
 //
 // All paths author in a 24×24 box; the shapes scale to whatever frame we give.
@@ -26,6 +29,8 @@ struct ProviderLogo: View {
                 VectorLogo(pathData: BrandPaths.openai).fill(color)
             case "gemini":
                 VectorLogo(pathData: BrandPaths.gemini).fill(color)
+            case "minimax":
+                VectorLogo(pathData: BrandPaths.minimax).fill(color)
             default:
                 Text(Providers.mark(for: key))
                     .font(.system(size: size))
@@ -85,4 +90,8 @@ enum BrandPaths {
 
     // Gemini — four-point spark.
     static let gemini = "M12 0C12 6.6 6.6 12 0 12C6.6 12 12 17.4 12 24C12 17.4 17.4 12 24 12C17.4 12 12 6.6 12 0Z"
+
+    // MiniMax — geometric M monogram (sans-serif, V cut from top, flat bottom).
+    // Authored in 24×24; two stems (4u wide), central V peak at (12,12).
+    static let minimax = "M3,3 H8 L12,12 L16,3 H21 V21 H3 Z"
 }

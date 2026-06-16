@@ -12,7 +12,9 @@ final class DraggablePanel: NSPanel {
             contentRect: NSRect(x: 0, y: 0, width: 360, height: 200),
             // No .hudWindow — its material forces a dark vibrancy that fights the
             // light "Kaji Sun" theme. We paint our own warm gradient instead.
-            styleMask: [.borderless, .nonactivatingPanel],
+            // .resizable so the user can drag the edges/corners to scale the
+            // HUD; we paint our own shadow (no native chrome).
+            styleMask: [.borderless, .nonactivatingPanel, .resizable],
             backing: .buffered,
             defer: false
         )
@@ -33,6 +35,18 @@ final class DraggablePanel: NSPanel {
         if let fitting = content.fittingSize as NSSize?, fitting.width > 0 {
             setContentSize(fitting)
         }
+
+        // Allow the user to shrink toward the content's natural size and grow
+        // comfortably up to ~3 rings at max ring size. Below the minimum the
+        // SwiftUI content would clip; above the max, the rings stop scaling.
+        let minW: CGFloat = 220
+        let minH: CGFloat = 140
+        let maxW: CGFloat = 720
+        let maxH: CGFloat = 360
+        minSize = NSSize(width: minW, height: minH)
+        maxSize = NSSize(width: maxW, height: maxH)
+        contentMinSize = NSSize(width: minW, height: minH)
+        contentMaxSize = NSSize(width: maxW, height: maxH)
     }
 
     // Borderless windows can't become key by default; allow it so SwiftUI
@@ -72,13 +86,16 @@ final class FloatingPanelController {
 
     func show() {
         if panel == nil {
-            // No fixed width — GaugeRowView paints its own warm gradient and
-            // hugs its content, so the panel fits N rings without dead space.
-            let root = GaugeRowView(store: store, prefs: prefs)
+            // Resizable HUD: GaugeRowView runs in `expandToFill` mode so the
+            // SwiftUI view tracks the panel's width and rings scale together.
+            let root = GaugeRowView(store: store, prefs: prefs, expandToFill: true)
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             let hosting = NSHostingView(rootView: root)
             hosting.layer?.cornerRadius = 14
             hosting.frame = NSRect(origin: .zero, size: hosting.fittingSize)
+            // Track the panel's content size on resize (width + height), so
+            // the SwiftUI view reflows instead of staying anchored top-left.
+            hosting.autoresizingMask = [.width, .height]
             let p = DraggablePanel(content: hosting)
             // Place near the top-right of the main screen on first show.
             if let screen = NSScreen.main {
