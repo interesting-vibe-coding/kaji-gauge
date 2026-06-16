@@ -114,6 +114,7 @@ struct GaugeRowView: View {
                         LazyVStack(alignment: .leading, spacing: 10) {
                             ForEach(shown) { provider in
                                 RingGauge(provider: provider, lang: prefs.language,
+                                          showRemaining: prefs.showRemaining,
                                           ringSize: size)
                             }
                         }
@@ -122,6 +123,7 @@ struct GaugeRowView: View {
                         HStack(alignment: .top, spacing: 16) {
                             ForEach(shown) { provider in
                                 RingGauge(provider: provider, lang: prefs.language,
+                                          showRemaining: prefs.showRemaining,
                                           ringSize: size)
                             }
                         }
@@ -133,6 +135,7 @@ struct GaugeRowView: View {
             HStack(alignment: .top, spacing: 16) {
                 ForEach(shown) { provider in
                     RingGauge(provider: provider, lang: prefs.language,
+                              showRemaining: prefs.showRemaining,
                               ringSize: defaultRing)
                 }
             }
@@ -176,6 +179,22 @@ struct GaugeRowView: View {
                 }
                 segment(L10n.t(.styleColor, prefs.language), on: prefs.menubarStyle == .color) {
                     prefs.menubarStyle = .color
+                }
+            }
+
+            // Usage row: show 5h as USED vs REMAINING. Defaults to USED, which
+            // matches the historical ring direction; REMAINING reads "0% means
+            // full" with a reversed trim. The dock strip + menubar follow along.
+            HStack(spacing: 7) {
+                Text(L10n.t(.usage, prefs.language))
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundColor(t.mute)
+                Spacer(minLength: 8)
+                segment(L10n.t(.showUsed, prefs.language), on: !prefs.showRemaining) {
+                    prefs.showRemaining = false
+                }
+                segment(L10n.t(.showRemaining, prefs.language), on: prefs.showRemaining) {
+                    prefs.showRemaining = true
                 }
             }
 

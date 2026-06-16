@@ -7,7 +7,7 @@ enum Config {
     /// shipped .app uses the self-contained copy bundled in Contents/Resources
     /// (see `QuotaStore.scriptPath`); end users never need this path.
     static let defaultQuotaScriptPath =
-        "/Users/tangyinghao/workspace/helm-terminal/tools/helm-quota/quota.py"
+        "/Users/tangyinghao/workspace/kaji/tools/helm-quota/quota.py"
 
     /// python3 interpreter. We rely on PATH resolution via /usr/bin/env.
     static let pythonInterpreter = "python3"

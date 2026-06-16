@@ -3,16 +3,17 @@ import SwiftUI
 // MARK: - DockStripView
 //
 // The visual shown when the floating HUD is `.docked` against a screen edge.
-// A 36pt thin strip with the mostConstrained provider's logo + 5h percentage
-// + reset countdown, so the user keeps an at-a-glance read of their tightest
-// quota even with the panel collapsed out of the way.
+// A 36pt thin strip hosting:
+//   - the mostConstrained provider's logo + 5h % + reset countdown, on the
+//     SCREEN-edge side of the strip.
+//   - a curved handle ("ear") on the PANEL-facing side, with a chevron
+//     pointing the way the panel will unfold. Click handle (or anywhere on
+//     the strip) → `onExpand()`.
 //
-// The strip rotates the content 90° on left/right docks so reading flows
-// top→bottom (matches QQ-style edge docks). On top/bottom the strip is short
-// + wide and reads horizontally (no rotation).
-//
-// Tap or hover the strip → `onExpand()` fires; the controller animates the
-// panel back to its saved expanded frame.
+// Layout is done natively via HStack / VStack — no rotation. The strip's
+// long axis (height for left/right docks, width for top/bottom docks) is laid
+// out the way the eye reads it, so the chevron + percent text never need
+// a transform.
 struct DockStripView: View {
     @ObservedObject var store: QuotaStore
     @ObservedObject var prefs: Prefs
@@ -30,47 +31,59 @@ struct DockStripView: View {
     }
 
     var body: some View {
-        // The frame is set by the controller (panel width/height after snap).
-        // Content is rotated on left/right edges so the strip reads top-down.
-        ZStack {
-            background
-            content
-                .rotationEffect(rotation, anchor: .center)
+        // Handle sits on the PANEL-facing side, content on the SCREEN-edge
+        // side. No rotation — the long axis is laid out natively.
+        Group {
+            switch edge {
+            case .left:
+                HStack(spacing: 0) { handle; content }
+            case .right:
+                HStack(spacing: 0) { content; handle }
+            case .top:
+                VStack(spacing: 0) { handle; content }
+            case .bottom:
+                VStack(spacing: 0) { content; handle }
+            }
         }
-        .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(stripBg)
+        .overlay(stripOutline)
+        .clipShape(stripShape)
+        .contentShape(stripShape)
         .onTapGesture(perform: onExpand)
     }
 
-    // MARK: Background chrome
+    // MARK: Background + shape
 
-    private var background: some View {
-        ZStack {
-            // Same warm paper/ink gradient as the full HUD so the docked
-            // strip doesn't look like a foreign object on the desktop.
-            LinearGradient(
-                colors: [t.bgTop, t.bg],
-                startPoint: .topTrailing, endPoint: .bottomLeading
-            )
-            // 1pt gold outline — matches the HUD's accent ring so docked
-            // mode reads as a continuation, not a separate widget.
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(t.gold.opacity(0.55), lineWidth: 1)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    private var stripBg: some View {
+        // Same warm paper/ink gradient as the full HUD so the docked strip
+        // doesn't look like a foreign object on the desktop.
+        LinearGradient(
+            colors: [t.bgTop, t.bg],
+            startPoint: .topTrailing, endPoint: .bottomLeading
+        )
     }
 
-    // MARK: Content
+    private var stripOutline: some View {
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .stroke(t.gold.opacity(0.55), lineWidth: 1)
+    }
+
+    /// Capsule on both ends — the panel-facing edge already curves gracefully,
+    /// and the dedicated handle View on top of it pops as the affordance.
+    private var stripShape: some Shape {
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+    }
+
+    // MARK: Content (logo + % + countdown)
 
     private var content: some View {
-        // VStack along the strip's long axis (will be rotated for left/right).
-        // Spacing is tight — the strip is 36pt wide so we have ~30pt usable.
         VStack(spacing: 3) {
             logo
             percentLabel
             countdownLabel
         }
-        .padding(.horizontal, 4)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 8)
     }
 
     @ViewBuilder
@@ -85,8 +98,9 @@ struct DockStripView: View {
 
     private var percentLabel: some View {
         let text: String = {
-            guard let p = provider, let pct = p.fiveHourPercent else { return "—" }
-            return "\(Int(pct.rounded()))%"
+            guard let p = provider, let raw = p.fiveHourPercent else { return "—" }
+            let shown = prefs.showRemaining ? (100 - raw) : raw
+            return "\(Int(shown.rounded()))%"
         }()
         return Text(text)
             .font(.system(size: 12.5, weight: .semibold, design: .rounded))
@@ -104,7 +118,7 @@ struct DockStripView: View {
     }
 
     /// "5h12m" or "12m" or "" when no data. Matches the menubar's compact
-    /// style — short enough to fit a rotated 36pt strip without truncation.
+    /// style — short enough to fit a 36pt strip without truncation.
     private var countdownText: String {
         guard let p = provider, let reset = p.resetDate else { return "·" }
         let secs = max(0, Int(reset.timeIntervalSinceNow))
@@ -114,15 +128,47 @@ struct DockStripView: View {
         return h > 0 ? "\(h)h\(m)m" : "\(m)m"
     }
 
-    // MARK: Rotation
+    // MARK: Handle (panel-facing side)
 
-    /// Left/right docks rotate content 90° so the strip reads top→bottom;
-    /// top/bottom docks keep horizontal reading.
-    private var rotation: Angle {
+    /// Curved pill on the inner side of the strip. The chevron points the
+    /// way the panel will unfold. Has its own gold-tinted backdrop so it
+    /// visually pops as "this is the button" against the warm-paper strip.
+    /// The whole strip is also tappable as a fallback.
+    private var handle: some View {
+        ZStack {
+            Capsule(style: .continuous)
+                .fill(t.gold.opacity(0.18))
+                .overlay(Capsule(style: .continuous)
+                    .stroke(t.gold.opacity(0.7), lineWidth: 1))
+            Image(systemName: chevronName)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(t.gold)
+        }
+        .frame(width: handleSize.width, height: handleSize.height)
+        .padding(3)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onExpand)
+    }
+
+    /// Tall thin pill on left/right docks, short wide pill on top/bottom.
+    /// Sized so it reads as a "tab" inside the strip without competing with
+    /// the logo / percentage content.
+    private var handleSize: CGSize {
         switch edge {
-        case .left:   return .degrees(90)
-        case .right:  return .degrees(-90)
-        case .top, .bottom: return .degrees(0)
+        case .left, .right:
+            return CGSize(width: 14, height: 44)
+        case .top, .bottom:
+            return CGSize(width: 44, height: 14)
+        }
+    }
+
+    /// Chevron points WHERE the panel will unfold toward when the user clicks.
+    private var chevronName: String {
+        switch edge {
+        case .left:   return "chevron.right"   // panel unrolls to the right
+        case .right:  return "chevron.left"    // panel unrolls to the left
+        case .top:    return "chevron.down"    // panel unrolls down
+        case .bottom: return "chevron.up"      // panel unrolls up
         }
     }
 }

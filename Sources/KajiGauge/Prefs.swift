@@ -28,12 +28,19 @@ final class Prefs: ObservableObject {
     @Published var dockEdge: DockEdge? {
         didSet { UserDefaults.standard.set(dockEdge?.rawValue, forKey: Key.dockEdge) }
     }
+    /// Show the 5h percentage as USED (default, "100% means full") vs
+    /// REMAINING ("0% means full"). Persisted; the toggle lives in both the
+    /// popover footer segment and the right-click menu on the status item.
+    @Published var showRemaining: Bool {
+        didSet { UserDefaults.standard.set(showRemaining, forKey: Key.showRemaining) }
+    }
 
     enum Key {
         static let visibleProviders = "visibleProviders"
         static let language = "language"
         static let menubarStyle = "menubarStyle"
         static let dockEdge = "panelDockEdge"
+        static let showRemaining = "showRemaining"
     }
 
     init() {
@@ -59,6 +66,13 @@ final class Prefs: ObservableObject {
             dockEdge = e
         } else {
             dockEdge = nil
+        }
+        // Default to showing USED — matches what the rings always did and
+        // avoids surprising existing users on first launch after upgrade.
+        if d.object(forKey: Key.showRemaining) != nil {
+            showRemaining = d.bool(forKey: Key.showRemaining)
+        } else {
+            showRemaining = false
         }
     }
 
@@ -121,6 +135,7 @@ enum L10n {
         case refreshNow, quitApp, language, providers, show
         case menubar, styleMono, styleColor
         case dockExpand, dockHint
+        case usage, showUsed, showRemaining
     }
 
     private static let table: [K: (en: String, zh: String)] = [
@@ -142,6 +157,9 @@ enum L10n {
         .styleColor:   ("Color",              "\u{5F69}\u{8272}"),                         // 彩色
         .dockExpand:   ("tap to expand",      "\u{70B9}\u{51FB}\u{5C55}\u{5F00}"),         // 点击展开
         .dockHint:     ("drag to undock",     "\u{62D6}\u{52A8}\u{5C55}\u{5F00}"),         // 拖动展开
+        .usage:        ("Usage",              "\u{7528}\u{91CF}"),                         // 用量
+        .showUsed:     ("Used",               "\u{5DF2}\u{7528}"),                         // 已用
+        .showRemaining:("Remaining",          "\u{5269}\u{4F59}"),                         // 剩余
     ]
 
     static func t(_ k: K, _ lang: Lang) -> String {
