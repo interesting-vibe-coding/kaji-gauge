@@ -50,7 +50,7 @@ struct GaugeRowView: View {
         }
         .padding(14)
         .background(background)
-        .modifier(PanelOrPopoverFrame(panelSize: panelSize))
+        .modifier(PanelOrPopoverFrame(panelSize: panelSize, hasControls: controls != nil))
     }
 
     @ViewBuilder
@@ -94,11 +94,21 @@ struct GaugeRowView: View {
 
     private struct PanelOrPopoverFrame: ViewModifier {
         let panelSize: PanelSize?
+        let hasControls: Bool
         func body(content: Content) -> some View {
             if let panelSize {
-                content.frame(width: panelSize.frameSize.width,
-                              height: panelSize.frameSize.height,
-                              alignment: .topLeading)
+                if hasControls {
+                    // Popover: width is pinned to S/M/L, but height grows
+                    // to fit the settings footer. Floating HUD has no
+                    // footer, so it's free to take the full frame.
+                    content.frame(width: panelSize.frameSize.width,
+                                  alignment: .topLeading)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    content.frame(width: panelSize.frameSize.width,
+                                  height: panelSize.frameSize.height,
+                                  alignment: .topLeading)
+                }
             } else {
                 content.fixedSize()
             }
@@ -281,11 +291,20 @@ struct GaugeRowView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 6) {
+        // No working python3 → actionable onboarding. Any other failure (or a
+        // first poll still in flight) reads as a neutral "waiting" rather than a
+        // raw subprocess error string, which would look broken to end users.
+        let message: String
+        if store.lastError == Config.noPythonSentinel {
+            message = L10n.t(.needPython, prefs.language)
+        } else {
+            message = L10n.t(.waiting, prefs.language)
+        }
+        return VStack(spacing: 6) {
             Text("\u{2014}")
                 .font(.system(size: 28))
                 .foregroundColor(t.ash)
-            Text(store.lastError ?? L10n.t(.waiting, prefs.language))
+            Text(message)
                 .font(.system(size: 11))
                 .foregroundColor(t.mute)
                 .multilineTextAlignment(.center)

@@ -20,6 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let prefs = Prefs()
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
+    private var popoverHostingController: NSHostingController<AnyView>?
     private var panelController: FloatingPanelController!
     private var hostingView: NSHostingView<StatusItemView>!
     private var cancellables = Set<AnyCancellable>()
@@ -44,6 +45,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         prefs.$menubarStyle
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.updateStatusItem() }
+            .store(in: &cancellables)
+        // Popover size + visible-providers reactive: when the user flips
+        // S/M/L from the right-click menu (or toggles a provider) while the
+        // popover is open, the host content rebuilds with the new size.
+        prefs.$panelSize
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.refreshPopoverContentIfShown() }
+            .store(in: &cancellables)
+        prefs.$visibleProviders
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.refreshPopoverContentIfShown() }
             .store(in: &cancellables)
 
         updateStatusItem()
@@ -118,8 +130,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             popover.performClose(sender)
             return
         }
-        // Rebuild content each open so the panel toggle label reflects current
-        // state. No fixed width — the view hugs its content (adaptive to N rings).
+        // Rebuild content each open. Width is pinned to `prefs.panelSize`
+        // so the popover follows S/M/L; height auto-fits since the popover
+        // also shows the settings footer (which the HUD doesn't).
+        let controller = makePopoverContentController()
+        popoverHostingController = controller
+        let target = popoverFittingSize(for: controller)
+        controller.preferredContentSize = target
+        popover.contentSize = target
+        popover.contentViewController = controller
+        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+        popover.contentViewController?.view.window?.makeKey()
+    }
+
+    private func makePopoverContentController() -> NSHostingController<AnyView> {
         let controls = GaugeRowView.Controls(
             panelVisible: panelController.isVisible,
             onTogglePanel: { [weak self] in
@@ -128,17 +152,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             onQuit: { NSApp.terminate(nil) }
         )
-        let content = GaugeRowView(store: store, prefs: prefs, controls: controls)
+        let content = GaugeRowView(store: store, prefs: prefs,
+                                   controls: controls,
+                                   panelSize: prefs.panelSize)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        let controller = NSHostingController(rootView: content)
+        let controller = NSHostingController(rootView: AnyView(content))
         controller.view.configureKajiHost(cornerRadius: 14)
-        let fitting = controller.view.fittingSize
-        controller.view.frame = NSRect(origin: .zero, size: fitting)
-        controller.preferredContentSize = fitting
-        popover.contentSize = fitting
+        return controller
+    }
+
+    /// Width is pinned to S/M/L; height comes from the SwiftUI fitting pass
+    /// after the width is fixed (settings footer rows extend the height by
+    /// a variable amount per language).
+    private func popoverFittingSize(for controller: NSHostingController<AnyView>) -> CGSize {
+        let width = prefs.panelSize.frameSize.width
+        controller.view.frame = NSRect(x: 0, y: 0, width: width, height: 1)
+        controller.view.layoutSubtreeIfNeeded()
+        let fittingHeight = controller.view.fittingSize.height
+        return CGSize(width: width, height: fittingHeight)
+    }
+
+    /// Live-rebuild the popover content view when prefs that affect layout
+    /// change (S/M/L size, visible providers). Resizes the popover to the
+    /// new target frame so the change is visible without re-opening.
+    private func refreshPopoverContentIfShown() {
+        guard popover != nil, popover.isShown else { return }
+        let controller = makePopoverContentController()
+        popoverHostingController = controller
+        let target = popoverFittingSize(for: controller)
+        controller.preferredContentSize = target
+        popover.contentSize = target
         popover.contentViewController = controller
-        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
-        popover.contentViewController?.view.window?.makeKey()
     }
 
     // MARK: - Right-click menu
