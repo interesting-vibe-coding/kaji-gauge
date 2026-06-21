@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var popoverHostingController: NSHostingController<AnyView>?
     private var panelController: FloatingPanelController!
     private var hostingView: NSHostingView<StatusItemView>!
+    private let updateChecker = UpdateChecker()
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -57,6 +58,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.refreshPopoverContentIfShown() }
             .store(in: &cancellables)
+        // Update availability re-renders the glyph (adds/removes the badge dot).
+        updateChecker.$available
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.updateStatusItem() }
+            .store(in: &cancellables)
+        // Check on launch; re-check when the app is reactivated (cheap, throttled
+        // to once per interval inside the checker).
+        updateChecker.checkIfDue()
 
         updateStatusItem()
         panelController.restore()
@@ -79,7 +88,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let button = statusItem.button else { return }
 
         let view = StatusItemView(providers: visibleProviders,
-                                  style: prefs.menubarStyle)
+                                  style: prefs.menubarStyle,
+                                  updateAvailable: updateChecker.available != nil)
         hostingView = NSHostingView(rootView: view)
         hostingView.configureKajiHost()
         hostingView.translatesAutoresizingMaskIntoConstraints = false
@@ -98,7 +108,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateStatusItem() {
         hostingView?.rootView = StatusItemView(providers: visibleProviders,
-                                               style: prefs.menubarStyle)
+                                               style: prefs.menubarStyle,
+                                               updateAvailable: updateChecker.available != nil)
         statusItem.length = statusItemLength
     }
 
@@ -279,6 +290,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
+        // Update row: actionable when a newer release exists, otherwise a passive
+        // "check for updates" that forces a fresh check.
+        if let rel = updateChecker.available {
+            let updateItem = NSMenuItem(title: L10n.t(.updateTo, lang) + " " + rel.tag,
+                                        action: #selector(openUpdate),
+                                        keyEquivalent: "")
+            updateItem.target = self
+            menu.addItem(updateItem)
+        } else {
+            let checkItem = NSMenuItem(title: L10n.t(.checkUpdates, lang),
+                                       action: #selector(checkUpdatesNow),
+                                       keyEquivalent: "")
+            checkItem.target = self
+            menu.addItem(checkItem)
+        }
+
+        menu.addItem(.separator())
+
         let quitItem = NSMenuItem(title: L10n.t(.quitApp, lang),
                                   action: #selector(NSApplication.terminate(_:)),
                                   keyEquivalent: "q")
@@ -296,6 +325,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func refreshNow() {
         store.refresh()
+    }
+
+    @objc private func openUpdate() {
+        guard let rel = updateChecker.available else { return }
+        NSWorkspace.shared.open(rel.url)
+    }
+
+    @objc private func checkUpdatesNow() {
+        updateChecker.checkIfDue(force: true)
     }
 
     @objc private func toggleProvider(_ sender: NSMenuItem) {

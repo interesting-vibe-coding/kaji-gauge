@@ -167,6 +167,7 @@ enum L10n {
         case dockExpand, dockHint
             case usage, showUsed, showRemaining
             case panelSize, sizeSmall, sizeMedium, sizeLarge
+            case updateTo, checkUpdates
     }
 
     private static let table: [K: (en: String, zh: String)] = [
@@ -184,6 +185,8 @@ enum L10n {
         .hidePanel:    ("Hide desktop panel",  "\u{9690}\u{85CF}\u{60AC}\u{6D6E}\u{7A97}"), // 隐藏悬浮窗
         .showPanel:    ("Show Floating Panel", "\u{663E}\u{793A}\u{60AC}\u{6D6E}\u{7A97}"), // 显示悬浮窗
         .refreshNow:   ("Refresh Now",         "\u{7ACB}\u{5373}\u{5237}\u{65B0}"),         // 立即刷新
+        .updateTo:     ("Update to",           "\u{66F4}\u{65B0}\u{5230}"),                 // 更新到
+        .checkUpdates: ("Check for Updates\u{2026}", "\u{68C0}\u{67E5}\u{66F4}\u{65B0}\u{2026}"), // 检查更新…
         .quitApp:      ("Quit Kaji Gauge",     "\u{9000}\u{51FA} Kaji Gauge"),              // 退出 Kaji Gauge
         .language:     ("Language",            "\u{8BED}\u{8A00}"),                         // 语言
         .providers:    ("Providers",           "\u{63D0}\u{4F9B}\u{5546}"),                 // 提供商
