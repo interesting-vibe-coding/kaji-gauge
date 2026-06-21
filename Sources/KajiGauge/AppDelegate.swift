@@ -81,6 +81,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         store.stop()
     }
 
+    func applicationDidBecomeActive(_ notification: Notification) {
+        // Re-check on reactivation; the checker's own once/6h throttle keeps this
+        // from hitting the network on every menubar interaction.
+        updateChecker.checkIfDue()
+    }
+
     // MARK: - Status item
 
     private func setupStatusItem() {

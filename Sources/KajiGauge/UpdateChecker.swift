@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 // MARK: - UpdateChecker
 //
@@ -30,6 +31,7 @@ final class UpdateChecker: ObservableObject {
 
     private let session = URLSession(configuration: .ephemeral)
     private var lastCheck: Date?
+    private var inFlight = false
     private let minInterval: TimeInterval = 6 * 3600
 
     var currentVersion: String {
@@ -45,6 +47,11 @@ final class UpdateChecker: ObservableObject {
     }
 
     func check() async {
+        // Coalesce concurrent checks (e.g. rapid "Check for Updates" clicks) into
+        // a single in-flight request. Safe to read/write unguarded: @MainActor.
+        if inFlight { return }
+        inFlight = true
+        defer { inFlight = false }
         guard let url = URL(string: "https://api.github.com/repos/\(Self.repo)/releases/latest") else { return }
         var req = URLRequest(url: url)
         req.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
@@ -70,10 +77,12 @@ final class UpdateChecker: ObservableObject {
         }
     }
 
-    // "v0.4.6" -> "0.4.6"
+    // "v0.4.6" -> "0.4.6", "v0.4.6-beta.1" -> "0.4.6". (Pre-releases are already
+    // filtered out by the API query, so this only hardens the comparison.)
     static func normalize(_ s: String) -> String {
         var t = s.trimmingCharacters(in: .whitespaces)
         if t.first == "v" || t.first == "V" { t.removeFirst() }
+        if let dash = t.firstIndex(of: "-") { t = String(t[..<dash]) }
         return t
     }
 

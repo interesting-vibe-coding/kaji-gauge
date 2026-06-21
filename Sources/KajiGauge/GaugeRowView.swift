@@ -83,11 +83,14 @@ struct GaugeRowView: View {
     private func popoverRings(_ size: PanelSize) -> some View {
         let n = CGFloat(max(1, shown.count))
         let content = size.frameSize.width - 28          // outer padding (14 * 2)
-        let spacing: CGFloat = n >= 4 ? 9 : 14
+        // Tighter spacing as the count grows so the row keeps fitting.
+        let spacing: CGFloat = n >= 5 ? 6 : (n >= 4 ? 9 : 14)
         let raw = (content - spacing * (n - 1)) / n
-        // Floor keeps tiny counts readable; cap at the size's natural ring so a
-        // single provider doesn't balloon.
-        let ring = min(size.ringSize, max(40, raw))
+        // `raw` is the largest ring that still fits the row. Clamp into
+        // [24, size.ringSize]: the 24pt floor only guards a degenerate count —
+        // with the real provider set (<=5) at the smallest width raw stays ~34pt
+        // so it never trips (a floor ABOVE raw, like the old 40, overflowed).
+        let ring = min(size.ringSize, max(24, raw))
         return HStack(alignment: .top, spacing: spacing) {
             ForEach(shown) { provider in
                 RingGauge(provider: provider, lang: prefs.language,
