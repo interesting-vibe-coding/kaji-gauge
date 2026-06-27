@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - GaugeRowView
 //
-// A status-bar popover panel, one ring per visible provider. S/M/L presets keep
+// A status-bar popover panel, one ring per visible provider. S/M presets keep
 // layout bounded; there is no draggable floating window surface.
 //
 // The popover passes `controls` (a settings footer: provider toggles, language,
@@ -54,7 +54,7 @@ struct GaugeRowView: View {
     private var ringsRow: some View {
         if let panelSize {
             // Popover (has the settings footer): ALWAYS one horizontal row,
-            // ring size computed to fill the width for N providers — S/M/L just
+            // ring size computed to fill the width for N providers — S/M just
             // scales the whole row proportionally.
             if controls != nil {
                 popoverRings(panelSize)
@@ -75,7 +75,7 @@ struct GaugeRowView: View {
 
     /// One horizontal row that always fits: ring diameter is derived from the
     /// (known, pinned) popover width and the provider count so N rings fill the
-    /// row exactly — 3 fill it, 4 fill it — and S/M/L scale it as a unit. No
+    /// row exactly — 3 fill it, 4 fill it — and S/M scale it as a unit. No
     /// GeometryReader (it would break the popover's vertical fitting pass).
     private func popoverRings(_ size: PanelSize) -> some View {
         if size == .small {
@@ -157,7 +157,7 @@ struct GaugeRowView: View {
         func body(content: Content) -> some View {
             if let panelSize {
                 if hasControls {
-                    // Popover: width is pinned to S/M/L, but height grows
+                    // Popover: width is pinned to S/M, but height grows
                     // to fit the settings footer. Floating HUD has no
                     // footer, so it's free to take the full frame.
                     content.frame(width: panelSize.frameSize.width,

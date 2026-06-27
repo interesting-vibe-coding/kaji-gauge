@@ -50,7 +50,7 @@ windows into a quiet menu bar signal: glance once, keep working.
 - **Quota popover**: 5h usage, 7d usage, local reset time, provider toggles, S/M size, used/remaining mode, and EN/CN language.
 - **Quiet native surface**: no dashboard, no dock icon, no floating panel.
 - **Three visual modes**: Mono is the default; Calm adds blue-gray accents; Playful adds warmer orange accents.
-- **Update hint**: a small dot appears when a newer GitHub Release is available.
+- **One-click updates**: a small dot appears when a newer GitHub Release is available; right-click Kaji and choose `Update to vX`.
 - **Pet bridge**: local `pet-state.json` for desktop-pet runtimes. See [docs/pet-bridge.md](docs/pet-bridge.md).
 
 ## Supported Providers

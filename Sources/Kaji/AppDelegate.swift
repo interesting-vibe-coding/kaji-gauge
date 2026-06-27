@@ -49,7 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .sink { [weak self] _ in self?.updateStatusItem() }
             .store(in: &cancellables)
         // Popover size + visible-providers reactive: when the user flips
-        // S/M/L from the right-click menu (or toggles a provider) while the
+        // S/M from the right-click menu (or toggles a provider) while the
         // popover is open, the host content rebuilds with the new size.
         prefs.$panelSize
             .receive(on: RunLoop.main)
@@ -150,7 +150,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         // Rebuild content each open. Width is pinned to `prefs.panelSize`
-        // so the popover follows S/M/L; height auto-fits since the popover
+        // so the popover follows S/M; height auto-fits since the popover
         // also shows the settings footer (which the HUD doesn't).
         let controller = makePopoverContentController()
         popoverHostingController = controller
@@ -176,7 +176,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return controller
     }
 
-    /// Width is pinned to S/M/L; height comes from the SwiftUI fitting pass
+    /// Width is pinned to S/M; height comes from the SwiftUI fitting pass
     /// after the width is fixed (settings footer rows extend the height by
     /// a variable amount per language).
     private func popoverFittingSize(for controller: NSHostingController<AnyView>) -> CGSize {
@@ -188,7 +188,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Live-rebuild the popover content view when prefs that affect layout
-    /// change (S/M/L size, visible providers). Resizes the popover to the
+    /// change (S/M size, visible providers). Resizes the popover to the
     /// new target frame so the change is visible without re-opening.
     private func refreshPopoverContentIfShown() {
         guard popover != nil, popover.isShown else { return }
@@ -328,7 +328,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openUpdate() {
         guard let rel = updateChecker.available else { return }
-        NSWorkspace.shared.open(rel.url)
+        do {
+            try updateChecker.install(rel)
+            NSApp.terminate(nil)
+        } catch {
+            NSWorkspace.shared.open(rel.url)
+        }
     }
 
     @objc private func checkUpdatesNow() {

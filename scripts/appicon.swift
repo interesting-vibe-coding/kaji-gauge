@@ -1,13 +1,10 @@
 import SwiftUI
 import AppKit
 
-// Kaji — app icon.
+// Kaji app icon.
 //
-// A sibling of the Kaji helm mark. Here the ring becomes the product itself —
-// a concentric DUAL-RING gauge — crossed by one mono spoke.
-//
-// Rendered offscreen with ImageRenderer (same proven path as snapshot.swift),
-// then packed into AppIcon.icns by scripts/make-icon.sh.
+// Mono-first: a quiet K mark plus three small quota rings. This avoids the old
+// orange helm/gauge metaphor and matches the product's default visual language.
 
 private func hex(_ v: UInt32) -> Color {
     Color(.sRGB,
@@ -18,100 +15,69 @@ private func hex(_ v: UInt32) -> Color {
 }
 
 struct AppIconView: View {
-    // 1024-pt design canvas.
-    let s: CGFloat = 1024
-
-    private let field = hex(0xF8F8F6)
-    private let fieldTop = hex(0xFFFFFF)
+    private let size: CGFloat = 1024
+    private let ink = hex(0x20201D)
+    private let muted = hex(0x666660)
+    private let track = hex(0xE7E7E2)
     private let edge = hex(0xDADAD6)
-    private let accent = hex(0x3D3D39)
-    private let accentLight = hex(0x666660)
-    private let track = hex(0xE5E5E1)
+    private let paper = hex(0xF8F8F6)
 
     var body: some View {
         ZStack {
-            // Rounded-rect "squircle" field, Apple-ish 10% margin + ~0.224 radius.
-            let inset: CGFloat = 100
-            let side = s - inset * 2
-            RoundedRectangle(cornerRadius: side * 0.2237, style: .continuous)
+            RoundedRectangle(cornerRadius: 224, style: .continuous)
                 .fill(
-                    LinearGradient(colors: [fieldTop, field],
-                                   startPoint: .topLeading, endPoint: .bottomTrailing)
+                    LinearGradient(colors: [hex(0xFFFFFF), paper],
+                                   startPoint: .topLeading,
+                                   endPoint: .bottomTrailing)
                 )
                 .overlay(
-                    // Faint warm radial wash behind the gauge for a little depth.
-                    RadialGradient(colors: [accent.opacity(0.06), .clear],
-                                   center: .center, startRadius: 0, endRadius: side * 0.55)
-                        .clipShape(RoundedRectangle(cornerRadius: side * 0.2237, style: .continuous))
+                    RoundedRectangle(cornerRadius: 224, style: .continuous)
+                        .stroke(edge, lineWidth: 4)
                 )
-                .overlay(
-                    // Hairline edge so the white squircle stays defined against a
-                    // white Finder / Applications background.
-                    RoundedRectangle(cornerRadius: side * 0.2237, style: .continuous)
-                        .stroke(edge, lineWidth: 3)
-                )
-                .frame(width: side, height: side)
+                .shadow(color: .black.opacity(0.08), radius: 40, x: 0, y: 24)
+                .padding(92)
 
-            gauge
-            // Knockout: a wider FIELD-colored spoke under the accent one, so
-            // the handle reads as crossing OVER the wheel (a clean white gap on
-            // each side) instead of merging into a same-color blob.
-            spokeStroke(color: field, width: 96)
-            spokeStroke(color: accent, width: 60)
-            // Center hub.
-            Circle().fill(accent).frame(width: 46, height: 46)
+            Text("K")
+                .font(.system(size: 520, weight: .black, design: .rounded))
+                .foregroundColor(ink)
+                .offset(x: -128, y: -10)
+
+            VStack(alignment: .leading, spacing: 24) {
+                miniRing(progress: 0.78, line: 26, side: 128)
+                miniRing(progress: 0.54, line: 23, side: 108)
+                miniRing(progress: 0.32, line: 20, side: 88)
+            }
+            .offset(x: 246, y: 102)
         }
-        .frame(width: s, height: s)
+        .frame(width: size, height: size)
     }
 
-    // The helm-as-gauge: a full accent bezel ring (the wheel) with an inner
-    // lighter accent arc inside it (the meter / 7d window) — dual-ring like the
-    // product, but clean enough to read at 16pt.
-    private var gauge: some View {
-        let outer: CGFloat = 540
-        let outerLW: CGFloat = 60
-        let innerInset: CGFloat = 116
-        let innerLW: CGFloat = 38
-        return ZStack {
-            // Outer accent bezel — a full ring, like the kaji helm wheel.
-            Circle().stroke(accent, style: StrokeStyle(lineWidth: outerLW, lineCap: .round))
-            // Inner gold meter — a faint full track with a ~62% arc on top.
-            Circle().stroke(track.opacity(0.9),
-                            style: StrokeStyle(lineWidth: innerLW, lineCap: .round))
-                .padding(innerInset)
-            Circle().trim(from: 0, to: 0.62)
-                .stroke(accentLight, style: StrokeStyle(lineWidth: innerLW, lineCap: .round))
+    private func miniRing(progress: CGFloat, line: CGFloat, side: CGFloat) -> some View {
+        ZStack {
+            Circle()
+                .stroke(track, style: StrokeStyle(lineWidth: line, lineCap: .round))
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(muted, style: StrokeStyle(lineWidth: line, lineCap: .round))
                 .rotationEffect(.degrees(-90))
-                .padding(innerInset)
+            Circle()
+                .fill(ink)
+                .frame(width: line * 0.72, height: line * 0.72)
         }
-        .frame(width: outer, height: outer)
-    }
-
-    // The single helm spoke — hub out to NE, past the bezel rim.
-    // Matches kaji-logo.svg direction + ~1.45x ring-radius reach (center 64,64
-    // -> 104,24 in the 128 logo). The bezel is masked under the spoke so the
-    // handle reads as one clean stroke crossing the wheel.
-    private func spokeStroke(color: Color, width: CGFloat) -> some View {
-        Path { p in
-            let c = CGPoint(x: s / 2, y: s / 2)
-            let len: CGFloat = 392           // ~1.45 x the 270 bezel radius
-            let a = CGFloat.pi / 4           // 45° above horizontal (NE)
-            p.move(to: c)
-            p.addLine(to: CGPoint(x: c.x + len * cos(a), y: c.y - len * sin(a)))
-        }
-        .stroke(color, style: StrokeStyle(lineWidth: width, lineCap: .round))
+        .frame(width: side, height: side)
     }
 }
 
 @MainActor
 func renderIcon(to path: String) {
     let renderer = ImageRenderer(content: AppIconView())
-    renderer.scale = 1   // view is already 1024pt → 1024px
+    renderer.scale = 1
     guard let img = renderer.nsImage,
           let tiff = img.tiffRepresentation,
           let rep = NSBitmapImageRep(data: tiff),
           let png = rep.representation(using: .png, properties: [:]) else {
-        print("render failed"); return
+        print("render failed")
+        return
     }
     try? png.write(to: URL(fileURLWithPath: path))
     print("wrote \(path) size=\(img.size)")

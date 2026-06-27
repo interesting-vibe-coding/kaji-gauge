@@ -22,7 +22,7 @@ struct RingGauge: View {
     var showRemaining: Bool = false
 
     /// Outer ring diameter. Scales the ring + the logo + the big % together so
-    /// the visual mass stays proportional across S/M/L popover presets.
+    /// the visual mass stays proportional across S/M popover presets.
     /// 84 = the legacy fixed size used by the popover + first-launch HUD.
     var ringSize: CGFloat = 84
 
