@@ -50,6 +50,7 @@ windows into a quiet menu bar signal: glance once, keep working.
 - **Quiet native surface**: no dashboard, no dock icon, no floating panel.
 - **Light/dark styling**: warm native colors with mono or color menu bar mode.
 - **Update hint**: a small dot appears when a newer GitHub Release is available.
+- **Pet bridge**: local `pet-state.json` for desktop-pet runtimes. See [docs/pet-bridge.md](docs/pet-bridge.md).
 
 ## Supported Providers
 
@@ -71,6 +72,18 @@ local CLI/account data -> bundled quota.py reader -> SwiftUI menu bar + popover
 - **Narrow network use**: GitHub Releases for update checks; Volcengine/Ark only when Ark Agent credentials are configured.
 
 Nothing is uploaded.
+
+## Pet Bridge
+
+Kaji writes a local state file at:
+
+```text
+~/Library/Application Support/Kaji/pet-state.json
+```
+
+Desktop-pet runtimes can map it to `idle`, `running`, `review`, `waiting`, or
+`failed` animation. Kaji stays the quota/status layer; `hatch-pet` stays the pet
+asset compiler.
 
 ## Build from Source
 

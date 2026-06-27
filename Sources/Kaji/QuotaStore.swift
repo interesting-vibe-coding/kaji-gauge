@@ -264,6 +264,7 @@ final class QuotaStore: ObservableObject {
             // Raw error stays in the log for debugging even though the empty
             // state shows a friendlier message.
             NSLog("[Kaji] quota refresh failed: %@", msg)
+            PetBridge.write(providers: providers, lastError: msg)
             // Still bump the timestamp so the user sees we tried.
             return
         case .success(let snap):
@@ -311,6 +312,7 @@ final class QuotaStore: ObservableObject {
 
         providers = views
         saveHistory()
+        PetBridge.write(providers: providers, lastError: lastError, generatedAt: lastUpdated ?? Date())
     }
 
     /// The provider closest to its limit — drives the menubar indicator.
