@@ -10,11 +10,11 @@ Kaji 会在长任务撞上额度墙之前提醒你。它本地优先、原生、
 
 [English](README.md)
 
-<a href="https://github.com/interesting-vibe-coding/kaji/releases/latest"><img src="https://img.shields.io/github/v/release/interesting-vibe-coding/kaji?color=5C86A3&label=release&labelColor=1A1A1A" alt="latest release"></a>
-<a href="https://github.com/interesting-vibe-coding/kaji/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/interesting-vibe-coding/kaji/ci.yml?branch=main&label=build&labelColor=1A1A1A&color=5C86A3" alt="build status"></a>
-<a href="https://github.com/interesting-vibe-coding/kaji/stargazers"><img src="https://img.shields.io/github/stars/interesting-vibe-coding/kaji?style=flat&label=stars&labelColor=1A1A1A&color=5C86A3" alt="GitHub stars"></a>
+<a href="https://github.com/MisterBrookT/kaji/releases/latest"><img src="https://img.shields.io/github/v/release/MisterBrookT/kaji?color=5C86A3&label=release&labelColor=1A1A1A" alt="latest release"></a>
+<a href="https://github.com/MisterBrookT/kaji/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/MisterBrookT/kaji/ci.yml?branch=main&label=build&labelColor=1A1A1A&color=5C86A3" alt="build status"></a>
+<a href="https://github.com/MisterBrookT/kaji/stargazers"><img src="https://img.shields.io/github/stars/MisterBrookT/kaji?style=flat&label=stars&labelColor=1A1A1A&color=5C86A3" alt="GitHub stars"></a>
 <img src="https://img.shields.io/badge/macOS-13%2B%20%C2%B7%20Apple%20Silicon-5C86A3?labelColor=1A1A1A" alt="macOS 13+, Apple Silicon">
-<a href="LICENSE"><img src="https://img.shields.io/github/license/interesting-vibe-coding/kaji?color=5C86A3&labelColor=1A1A1A" alt="MIT license"></a>
+<a href="LICENSE"><img src="https://img.shields.io/github/license/MisterBrookT/kaji?color=5C86A3&labelColor=1A1A1A" alt="MIT license"></a>
 
 <br>
 <br>
@@ -26,7 +26,7 @@ Kaji 会在长任务撞上额度墙之前提醒你。它本地优先、原生、
 ## 安装
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/interesting-vibe-coding/kaji/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/MisterBrookT/kaji/main/install.sh | bash
 ```
 
 需要 macOS 13+ 和 Apple Silicon。安装脚本会下载最新 release，移动到
