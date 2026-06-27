@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Render the Kaji Gauge app icon and pack it into Resources/AppIcon.icns.
+# Render the Kaji app icon and pack it into Resources/AppIcon.icns.
 #
 # Renders scripts/appicon.swift (SwiftUI ImageRenderer) to a 1024 master, then
 # sips-downscales the macOS iconset sizes and iconutil-packs the .icns. The

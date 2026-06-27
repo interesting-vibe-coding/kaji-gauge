@@ -62,7 +62,7 @@ Network use is intentionally narrow:
 
 ```sh
 swift run                 # development menu bar app
-./scripts/build-app.sh    # release bundle -> dist/KajiGauge.app
+./scripts/build-app.sh    # release bundle -> dist/Kaji.app
 ```
 
 On CLT-only machines where SwiftPM linking fails, use:

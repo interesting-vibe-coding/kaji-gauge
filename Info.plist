@@ -5,19 +5,19 @@
 	<key>CFBundleDisplayName</key>
 	<string>Kaji</string>
 	<key>CFBundleExecutable</key>
-	<string>KajiGauge</string>
+	<string>Kaji</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
-	<string>dev.kaji.gauge</string>
+	<string>dev.kaji</string>
 	<key>CFBundleName</key>
 	<string>Kaji</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.4.6</string>
+	<string>0.4.7</string>
 	<key>CFBundleVersion</key>
-	<string>8</string>
+	<string>9</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>13.0</string>
 	<key>LSUIElement</key>

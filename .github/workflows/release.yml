@@ -22,10 +22,10 @@ jobs:
       - name: Zip the .app
         run: |
           cd dist
-          zip -r -y KajiGauge.app.zip KajiGauge.app
+          zip -r -y Kaji.app.zip Kaji.app
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/KajiGauge.app.zip
+          files: dist/Kaji.app.zip
           generate_release_notes: true

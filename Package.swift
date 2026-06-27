@@ -2,14 +2,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "KajiGauge",
+    name: "Kaji",
     platforms: [
         .macOS(.v13)
     ],
     targets: [
         .executableTarget(
-            name: "KajiGauge",
-            path: "Sources/KajiGauge"
+            name: "Kaji",
+            path: "Sources/Kaji"
         )
     ]
 )

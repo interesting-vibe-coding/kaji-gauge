@@ -45,10 +45,10 @@ URL="$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" \
 [ -n "$URL" ] || die "no release asset found. Build from source instead (see README)."
 
 say "Downloading…"
-curl -fsSL "$URL" -o "$TMP/kaji-gauge.zip"
+curl -fsSL "$URL" -o "$TMP/kaji.zip"
 
 say "Unpacking…"
-unzip -q "$TMP/kaji-gauge.zip" -d "$TMP"
+unzip -q "$TMP/kaji.zip" -d "$TMP"
 APP_PATH="$(find "$TMP" -maxdepth 2 -name '*.app' -print -quit)"
 [ -n "$APP_PATH" ] || die "no .app found in the downloaded archive."
 APP_NAME="$(basename "$APP_PATH")"

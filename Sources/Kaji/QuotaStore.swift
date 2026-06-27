@@ -263,7 +263,7 @@ final class QuotaStore: ObservableObject {
             lastError = msg
             // Raw error stays in the log for debugging even though the empty
             // state shows a friendlier message.
-            NSLog("[KajiGauge] quota refresh failed: %@", msg)
+            NSLog("[Kaji] quota refresh failed: %@", msg)
             // Still bump the timestamp so the user sees we tried.
             return
         case .success(let snap):

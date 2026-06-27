@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Build KajiGauge.app — a menubar agent bundle (LSUIElement, no dock icon).
+# Build Kaji.app — a menubar agent bundle (LSUIElement, no dock icon).
 #
-#   swift build -c release  ->  assemble dist/KajiGauge.app
+#   swift build -c release  ->  assemble dist/Kaji.app
 #
 # Run from anywhere; paths are resolved relative to the repo root.
 set -euo pipefail
@@ -9,9 +9,9 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-APP_NAME="KajiGauge"
+APP_NAME="Kaji"
 BUNDLE="dist/${APP_NAME}.app"
-EXEC_NAME="KajiGauge"
+EXEC_NAME="Kaji"
 
 echo "==> swift build -c release"
 swift build -c release
@@ -40,8 +40,8 @@ else
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key><string>Kaji</string>
-	<key>CFBundleIdentifier</key><string>dev.kaji.gauge</string>
-	<key>CFBundleExecutable</key><string>KajiGauge</string>
+	<key>CFBundleIdentifier</key><string>dev.kaji</string>
+	<key>CFBundleExecutable</key><string>Kaji</string>
 	<key>CFBundleIconFile</key><string>AppIcon</string>
 	<key>CFBundlePackageType</key><string>APPL</string>
 	<key>CFBundleShortVersionString</key><string>0.3.3</string>

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Regenerate the README screenshots from the live SwiftUI views — reproducible,
 # no manual capture. Renders the popover + menu-bar strip offscreen via
-# ImageRenderer (Kaji Gauge runs as an LSUIElement agent, which screen-capture
+# ImageRenderer (Kaji runs as an LSUIElement agent, which screen-capture
 # can't see), then drops the PNGs into docs/.
 #
 #   ./scripts/screenshots.sh          # English (what the README ships)
@@ -9,7 +9,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-SRC=Sources/KajiGauge
+SRC=Sources/Kaji
 LANG_ARG="${1:-}"
 # Compile every source EXCEPT main.swift (its @main collides with the harness's).
 FILES=$(ls "$SRC"/*.swift | grep -v 'main.swift')

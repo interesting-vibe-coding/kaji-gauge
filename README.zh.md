@@ -60,7 +60,7 @@ Kaji 通过内置 Python reader 读取本地额度和账号窗口，再交给原
 
 ```sh
 swift run                 # 开发用菜单栏应用
-./scripts/build-app.sh    # release 包 -> dist/KajiGauge.app
+./scripts/build-app.sh    # release 包 -> dist/Kaji.app
 ```
 
 如果 CLT-only 机器上 SwiftPM 链接失败，用：

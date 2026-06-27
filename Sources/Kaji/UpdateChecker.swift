@@ -55,7 +55,7 @@ final class UpdateChecker: ObservableObject {
         guard let url = URL(string: "https://api.github.com/repos/\(Self.repo)/releases/latest") else { return }
         var req = URLRequest(url: url)
         req.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        req.setValue("KajiGauge", forHTTPHeaderField: "User-Agent")
+        req.setValue("Kaji", forHTTPHeaderField: "User-Agent")
         req.timeoutInterval = 12
         do {
             let (data, resp) = try await session.data(for: req)

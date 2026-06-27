@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-// Kaji Gauge — app icon.
+// Kaji — app icon.
 //
 // A sibling of the Kaji helm mark (assets/kaji-logo.svg: an ink ring with ONE
 // persimmon spoke). Here the ring becomes the product itself — a concentric

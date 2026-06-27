@@ -67,8 +67,12 @@ def _read_env_file(path):
     return data
 
 
-LOCAL_ENV = _read_env_file(os.environ.get("KAJI_GAUGE_VOLCENGINE_ENV")
-                           or HOME / ".config" / "kaji-gauge" / "volcengine.env")
+_LOCAL_ENV_PATH = os.environ.get("KAJI_VOLCENGINE_ENV") or os.environ.get("KAJI_GAUGE_VOLCENGINE_ENV")
+if not _LOCAL_ENV_PATH:
+    _KAJI_ENV = HOME / ".config" / "kaji" / "volcengine.env"
+    _LEGACY_ENV = HOME / ".config" / "kaji-gauge" / "volcengine.env"
+    _LOCAL_ENV_PATH = _KAJI_ENV if _KAJI_ENV.exists() or not _LEGACY_ENV.exists() else _LEGACY_ENV
+LOCAL_ENV = _read_env_file(_LOCAL_ENV_PATH)
 
 
 def _secret(*names):
