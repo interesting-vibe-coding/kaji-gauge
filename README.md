@@ -2,25 +2,27 @@
 
 # Kaji
 
-**A beautiful macOS menu bar for AI usage.**
+**A beautiful macOS menu bar for AI coding usage.**
 
-Local-first quota rings for Claude, Codex, MiniMax, and Ark Agent.
+本地读取 Claude、Codex、MiniMax、Ark Agent 的额度，用一组安静的状态环放进菜单栏。
+
+Kaji keeps your coding-agent quota visible before a long prompt hits a wall. It
+is local-first, native, and small enough to live beside Wi-Fi and battery.
+
+Kaji 会在长任务撞上额度墙之前提醒你。它本地优先、原生、轻，适合一直待在菜单栏里。
 
 [中文](README.zh.md)
 
-<a href="https://github.com/interesting-vibe-coding/kaji/releases/latest"><img src="https://img.shields.io/github/v/release/interesting-vibe-coding/kaji?color=F25C05&label=release&labelColor=211C15" alt="latest release"></a>
-<img src="https://img.shields.io/badge/macOS-13%2B%20%C2%B7%20Apple%20Silicon-F25C05?labelColor=211C15" alt="macOS 13+, Apple Silicon">
-<a href="LICENSE"><img src="https://img.shields.io/github/license/interesting-vibe-coding/kaji?color=F25C05&labelColor=211C15" alt="MIT license"></a>
+<a href="https://github.com/interesting-vibe-coding/kaji/releases/latest"><img src="https://img.shields.io/github/v/release/interesting-vibe-coding/kaji?color=F25C05&label=release&labelColor=1A1A1A" alt="latest release"></a>
+<a href="https://github.com/interesting-vibe-coding/kaji/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/interesting-vibe-coding/kaji/ci.yml?branch=main&label=build&labelColor=1A1A1A&color=F25C05" alt="build status"></a>
+<a href="https://github.com/interesting-vibe-coding/kaji/stargazers"><img src="https://img.shields.io/github/stars/interesting-vibe-coding/kaji?style=flat&label=stars&labelColor=1A1A1A&color=F25C05" alt="GitHub stars"></a>
+<img src="https://img.shields.io/badge/macOS-13%2B%20%C2%B7%20Apple%20Silicon-F25C05?labelColor=1A1A1A" alt="macOS 13+, Apple Silicon">
+<a href="LICENSE"><img src="https://img.shields.io/github/license/interesting-vibe-coding/kaji?color=F25C05&labelColor=1A1A1A" alt="MIT license"></a>
 
 <br>
 <br>
 
-<img src="docs/menubar-light.png" width="598" alt="Kaji menu bar rings">
-
-<br>
-<br>
-
-<img src="docs/gauge-light.png" width="520" alt="Kaji quota popover">
+<p align="center"><img src="docs/hero.png" width="820" alt="Kaji macOS menu bar quota app"></p>
 
 </div>
 
@@ -31,18 +33,32 @@ curl -fsSL https://raw.githubusercontent.com/interesting-vibe-coding/kaji/main/i
 ```
 
 Requires macOS 13+ on Apple Silicon. The installer downloads the latest release,
-moves Kaji into `/Applications`, and launches the menu bar app.
+moves Kaji into `/Applications`, stops old copies, and launches the menu bar app.
 
 > Kaji is currently unsigned. The installer clears the Gatekeeper quarantine flag
 > transparently; this goes away after signing and notarization.
 
+## Why Kaji
+
+Coding agents are useful until their quota disappears mid-run. Kaji turns quota
+windows into a quiet menu bar signal: glance once, keep working.
+
 ## What It Shows
 
-- **Menu bar rings** - compact dual-ring status for the providers you choose to show.
-- **Quota popover** - 5h usage, 7d usage, local reset time, provider toggles, S/M/L size, used/remaining mode, and EN/CN language.
-- **Provider coverage** - Claude, Codex, MiniMax, and Ark Agent.
-- **Quiet styling** - native menu bar behavior, light/dark themes, mono or color mode.
-- **Update hint** - a small dot appears when a newer GitHub Release is available.
+- **Menu bar rings**: compact dual-ring status for selected providers.
+- **Quota popover**: 5h usage, 7d usage, local reset time, provider toggles, S/M/L size, used/remaining mode, and EN/CN language.
+- **Quiet native surface**: no dashboard, no dock icon, no floating panel.
+- **Light/dark styling**: warm native colors with mono or color menu bar mode.
+- **Update hint**: a small dot appears when a newer GitHub Release is available.
+
+## Supported Providers
+
+| Provider | What Kaji Tracks |
+| --- | --- |
+| Claude | Local Claude Code quota windows |
+| Codex | Local Codex usage windows |
+| MiniMax | Token-plan usage through the local `mmx` CLI |
+| Ark Agent | Volcengine Ark Agent Plan usage when local credentials exist |
 
 ## How It Works
 
@@ -50,13 +66,11 @@ moves Kaji into `/Applications`, and launches the menu bar app.
 local CLI/account data -> bundled quota.py reader -> SwiftUI menu bar + popover
 ```
 
-Kaji reads local quota/account windows through a bundled Python reader, then
-renders the result in a native SwiftUI menu bar surface. Nothing is uploaded.
+- **Local reader**: a bundled Python script reads local quota/account windows.
+- **Native surface**: SwiftUI renders the menu bar rings and popover.
+- **Narrow network use**: GitHub Releases for update checks; Volcengine/Ark only when Ark Agent credentials are configured.
 
-Network use is intentionally narrow:
-
-- GitHub Releases for update checks.
-- Volcengine/Ark endpoints only when Ark Agent credentials are configured.
+Nothing is uploaded.
 
 ## Build from Source
 
@@ -71,11 +85,25 @@ On CLT-only machines where SwiftPM linking fails, use:
 ./scripts/build-local.sh  # raw swiftc build, installs to /Applications
 ```
 
+## FAQ
+
+**Why does macOS warn that Kaji is unsigned?**
+
+Kaji is not signed or notarized yet. The installer removes the quarantine flag and says so explicitly.
+
+**Where does Ark Agent configuration live?**
+
+Use `~/.config/kaji/volcengine.env`. Legacy `~/.config/kaji-gauge/volcengine.env` still works as a fallback.
+
+**Does Kaji replace provider billing dashboards?**
+
+No. Kaji is a local status mirror, not a billing source of truth.
+
 ## Limitations
 
-Kaji is a local status app, not a billing source of truth. Provider APIs and
-local file formats can change; unavailable windows render as empty or unknown
-until the reader can see usable data again.
+Provider APIs and local file formats can change. When Kaji cannot read a usable
+window, the matching provider renders as empty or unknown until data is visible
+again.
 
 ## License
 
