@@ -16,7 +16,6 @@ enum Providers {
         "minimax": "\u{272A}",   // ✪ circled white star — kept as fallback
         "gemini":  "\u{2726}",   // ✦ four-point spark — hints Gemini
         "ark-agent": "\u{25C7}",  // ◇
-        "ark-coding": "\u{25C8}", // ◈
         "kiro":    "\u{25C9}",   // ◉
         "opencode": "\u{25B3}",  // △
     ]
@@ -28,7 +27,6 @@ enum Providers {
         "minimax": "MiniMax",
         "gemini":  "Gemini",
         "ark-agent": "Ark Agent",
-        "ark-coding": "Ark Coding",
         "kiro":    "Kiro",
         "opencode": "OpenCode",
     ]
@@ -36,13 +34,13 @@ enum Providers {
     /// Preferred left-to-right display order. Providers not listed here are
     /// appended afterward in alphabetical order.
     static let order: [String] = [
-        "claude", "codex", "ark-agent", "ark-coding",
+        "claude", "codex", "ark-agent",
         "minimax", "gemini", "kiro", "opencode"
     ]
 
-    /// Providers surfaced by default on a fresh install. Ark Agent/Coding are
-    /// available in the toggle list when configured, but stay opt-in until the
-    /// UI grows a wrapped/multi-row layout for 5+ rings and real quota values.
+    /// Providers surfaced by default on a fresh install. Ark Agent is available
+    /// in the toggle list when configured, but stays opt-in until quota is more
+    /// trustworthy.
     /// MiniMax quota is wired through the `mmx` CLI (see `quota.py`'s
     /// `_fetch_minimax_limits`).
     static let visible: Set<String> = ["claude", "codex", "minimax"]
@@ -51,7 +49,7 @@ enum Providers {
     /// Providers allowed into UI controls when quota.py emits them. This is
     /// intentionally broader than the default-visible set, but narrower than
     /// every diagnostic row quota.py can output.
-    static let available: Set<String> = ["claude", "codex", "minimax", "ark-agent", "ark-coding"]
+    static let available: Set<String> = ["claude", "codex", "minimax", "ark-agent"]
     static func isAvailable(_ key: String) -> Bool { available.contains(key) }
 
     static func mark(for key: String) -> String {

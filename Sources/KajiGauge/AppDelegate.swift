@@ -4,16 +4,15 @@ import Combine
 
 // MARK: - AppDelegate
 //
-// Wires the two surfaces:
-//   1. NSStatusItem (menubar) — compact indicator; left-click opens a popover
-//      with the full ring gauges; right-click opens a menu (toggle panel, quit).
-//   2. Floating NSPanel — the same gauges, always-on-top, draggable.
+// Wires the status-bar surface:
+//   NSStatusItem (menubar) — compact indicator; left-click opens a popover
+//   with the full quota panel; right-click opens a quick menu.
 //
 // The app runs as an LSUIElement agent (no dock icon, set in Info.plist).
 //
 // @MainActor: all of this is main-thread UI work, and it touches the
-// @MainActor-isolated QuotaStore / FloatingPanelController. Marking the whole
-// delegate keeps it concurrency-clean under stricter checking.
+// @MainActor-isolated QuotaStore. Marking the whole delegate keeps it
+// concurrency-clean under stricter checking.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let store = QuotaStore()
@@ -21,14 +20,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
     private var popoverHostingController: NSHostingController<AnyView>?
-    private var panelController: FloatingPanelController!
     private var hostingView: NSHostingView<StatusItemView>!
     private let updateChecker = UpdateChecker()
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         store.start()
-        panelController = FloatingPanelController(store: store, prefs: prefs)
 
         setupStatusItem()
         setupPopover()
@@ -68,7 +65,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         updateChecker.checkIfDue()
 
         updateStatusItem()
-        panelController.restore()
     }
 
     /// Providers the user has chosen to show, in display order — drives both the
@@ -162,11 +158,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func makePopoverContentController() -> NSHostingController<AnyView> {
         let controls = GaugeRowView.Controls(
-            panelVisible: panelController.isVisible,
-            onTogglePanel: { [weak self] in
-                self?.panelController.toggle()
-                self?.popover.performClose(nil)
-            },
+            onRefresh: { [weak self] in self?.store.refresh() },
             onQuit: { NSApp.terminate(nil) }
         )
         let content = GaugeRowView(store: store, prefs: prefs,
@@ -282,12 +274,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
-        let panelItem = NSMenuItem(
-            title: L10n.t(panelController.isVisible ? .hidePanel : .showPanel, lang),
-            action: #selector(togglePanel), keyEquivalent: "")
-        panelItem.target = self
-        menu.addItem(panelItem)
-
         let refreshItem = NSMenuItem(title: L10n.t(.refreshNow, lang),
                                      action: #selector(refreshNow),
                                      keyEquivalent: "r")
@@ -323,10 +309,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.menu = menu
         statusItem.button?.performClick(nil)
         statusItem.menu = nil
-    }
-
-    @objc private func togglePanel() {
-        panelController.toggle()
     }
 
     @objc private func refreshNow() {

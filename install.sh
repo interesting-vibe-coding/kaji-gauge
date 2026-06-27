@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Kaji Gauge — one-line installer.
+# Kaji — one-line installer.
 #
 #   curl -fsSL https://raw.githubusercontent.com/interesting-vibe-coding/kaji-gauge/main/install.sh | bash
 #
@@ -14,7 +14,7 @@ DEST="/Applications"
 say() { printf '\033[1;38;5;208m==>\033[0m %s\n' "$1"; }
 die() { printf '\033[1;31merror:\033[0m %s\n' "$1" >&2; exit 1; }
 
-[ "$(uname)" = "Darwin" ] || die "Kaji Gauge is macOS only."
+[ "$(uname)" = "Darwin" ] || die "Kaji is macOS only."
 
 # The bundled reader needs a real python3. /usr/bin/python3 is only a stub until
 # the Xcode command-line tools are installed — trigger that install (Apple's GUI
@@ -60,4 +60,4 @@ xattr -dr com.apple.quarantine "$DEST/$APP_NAME" 2>/dev/null || true
 
 say "Launching…"
 open "$DEST/$APP_NAME"
-say "Done — Kaji Gauge is now in your menu bar."
+say "Done — Kaji is now in your menu bar."

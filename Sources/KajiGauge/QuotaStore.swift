@@ -35,8 +35,6 @@ enum Config {
     // UserDefaults keys.
     static let kQuotaScriptPath = "quotaScriptPath"
     static let kPythonInterpreter = "pythonInterpreter" // user override (optional)
-    static let kPanelVisible    = "panelVisible"
-    static let kPanelDockEdge   = "panelDockEdge"  // "left" | "right" | "top" | "bottom"
     static let kSparkHistory    = "sparklineHistory" // [providerKey: [Double]]
 }
 

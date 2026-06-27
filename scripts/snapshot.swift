@@ -62,7 +62,7 @@ struct Snap {
             let popover = GaugeRowView(
                 store: QuotaStore(previewProviders: mocks, updated: Date()),
                 prefs: prefs,
-                controls: .init(panelVisible: false, onTogglePanel: {}, onQuit: {})
+                controls: .init(onRefresh: {}, onQuit: {})
             )
             // Menu-bar right cluster mock: the Kaji dual-rings sitting among the
             // real system status items (control center, wifi, battery, clock) so

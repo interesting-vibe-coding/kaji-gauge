@@ -21,7 +21,7 @@ struct RingGauge: View {
     var showRemaining: Bool = false
 
     /// Outer ring diameter. Scales the ring + the logo + the big % together so
-    /// the visual mass stays proportional when the floating HUD is resized.
+    /// the visual mass stays proportional across S/M/L popover presets.
     /// 84 = the legacy fixed size used by the popover + first-launch HUD.
     var ringSize: CGFloat = 84
 
@@ -117,8 +117,7 @@ struct RingGauge: View {
         let tiny = ringSize < 58
         let fiveReset = tiny ? ResetFormat.short(provider.resetDate)
                              : ResetFormat.phrase(provider.resetDate, lang)
-        let weekReset = tiny ? ResetFormat.short(provider.weekResetDate)
-                             : ResetFormat.phrase(provider.weekResetDate, lang)
+        let weekReset = ResetFormat.absolute(provider.weekResetDate, compact: narrow || tiny)
         // Fonts scale with ringSize too, so the whole row shrinks as a unit.
         let nameFont = min(13, max(8.5, ringSize * (12.0 / 84.0)))
         let capFont  = min(11, max(7.0, ringSize * (10.0 / 84.0)))
@@ -134,14 +133,12 @@ struct RingGauge: View {
                 .font(.system(size: capFont, weight: .medium))
                 .lineLimit(1)
                 .truncationMode(.tail)
-                .minimumScaleFactor(0.7)
-            // 7d used % — the ONLY numeric readout of the inner ring, so it stays
-            // visible at EVERY size (amber when near the weekly limit, so a maxed
-            // week is obvious at a glance). Only the trailing reset countdown is
-            // dropped when the ring is narrow.
+                .minimumScaleFactor(0.55)
+            // 7d used % + reset time. This is intentionally never dropped:
+            // weekly reset timing is the most common quota question.
             (Text("\(L10n.t(.week, lang)) ").foregroundColor(t.mute)
                 + Text(week).foregroundColor(provider.weekNearLimit ? t.amber : t.gold)
-                + Text(narrow ? "" : "  \u{00B7} \(weekReset)").foregroundColor(t.gold.opacity(0.85)))
+                + Text("  \u{00B7} \(weekReset)").foregroundColor(t.gold.opacity(0.85)))
                 .font(.system(size: capFont, weight: .medium))
                 .lineLimit(1)
                 .truncationMode(.tail)
@@ -177,4 +174,17 @@ enum ResetFormat {
 
     /// "—" when no date; "2h 14m" countdown otherwise. (compat helper)
     static func short(_ date: Date?) -> String { dur(date) ?? "\u{2014}" }
+
+    /// Local wall-clock reset. Today: "21:40"; later: "6-29 21:40".
+    static func absolute(_ date: Date?, compact: Bool = false) -> String {
+        guard let date else { return "\u{2014}" }
+        let f = DateFormatter()
+        f.locale = Locale.current
+        if Calendar.current.isDateInToday(date) {
+            f.dateFormat = "HH:mm"
+        } else {
+            f.dateFormat = compact ? "M/d HH" : "M-d HH:mm"
+        }
+        return f.string(from: date)
+    }
 }
