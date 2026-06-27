@@ -39,7 +39,7 @@ else
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleName</key><string>Kaji Gauge</string>
+	<key>CFBundleName</key><string>Kaji</string>
 	<key>CFBundleIdentifier</key><string>dev.kaji.gauge</string>
 	<key>CFBundleExecutable</key><string>KajiGauge</string>
 	<key>CFBundleIconFile</key><string>AppIcon</string>

@@ -32,7 +32,7 @@ struct ProviderLogo: View {
                 VectorLogo(pathData: BrandPaths.gemini).fill(color)
             case "minimax":
                 VectorLogo(pathData: BrandPaths.minimax).fill(color)
-            case "ark-agent", "ark-coding":
+            case "ark-agent":
                 ArkDiamond()
                     .stroke(color, style: StrokeStyle(lineWidth: size * (1.9 / 24),
                                                       lineJoin: .round))

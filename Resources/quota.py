@@ -47,7 +47,6 @@ HOME = Path.home()
 # Overridable for tests.
 CODEX_SESSIONS = Path(os.environ.get("HELM_CODEX_SESSIONS") or HOME / ".codex" / "sessions")
 ARK_AGENT_KEY = Path(os.environ.get("HELM_ARK_AGENT_KEY") or HOME / ".config" / "ark" / "agent-key")
-ARK_CODING_KEY = Path(os.environ.get("HELM_ARK_CODING_KEY") or HOME / ".config" / "ark" / "key")
 
 
 def _read_env_file(path):
@@ -85,10 +84,6 @@ VOLC_AK = _secret("VOLCENGINE_ACCESS_KEY_ID", "VOLCENGINE_ACCESS_KEY",
 VOLC_SK = _secret("VOLCENGINE_SECRET_ACCESS_KEY", "VOLCENGINE_SECRET_KEY",
                   "VOLC_SECRET_ACCESS_KEY", "VOLC_SECRET_KEY")
 VOLC_SESSION_TOKEN = _secret("VOLCENGINE_SESSION_TOKEN", "VOLC_SESSION_TOKEN")
-VOLC_ARK_PROJECT_NAME = _secret("VOLCENGINE_ARK_PROJECT_NAME", "VOLC_ARK_PROJECT_NAME",
-                                "ARK_PROJECT_NAME")
-VOLC_ARK_SEAT_ID = _secret("VOLCENGINE_ARK_SEAT_ID", "VOLC_ARK_SEAT_ID",
-                           "ARK_SEAT_ID")
 NOW = time.time()
 TODAY_START = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
 
@@ -784,16 +779,8 @@ def _add_ark_window(out, result, source_key, target_key):
         out[target_key + "_resets_at"] = reset
 
 
-def _ark_coding_query():
-    if VOLC_ARK_SEAT_ID:
-        return {"SeatID": VOLC_ARK_SEAT_ID}
-    if VOLC_ARK_PROJECT_NAME:
-        return {"ProjectName": VOLC_ARK_PROJECT_NAME}
-    return None
-
-
 def _ark_usage_limits(action, query=None, post_body=False):
-    """Best-effort parser for Ark Agent/Coding Plan usage responses."""
+    """Best-effort parser for Ark Agent Plan usage responses."""
     try:
         data = _volc_openapi(action, body_obj=(query if post_body else None))
     except Exception as exc:
@@ -830,14 +817,6 @@ def ark_agent_limits():
     return _limits_cached("ark-agent-limits-cache.json", lambda: _ark_usage_limits("GetAFPUsage"))
 
 
-def ark_coding_limits():
-    query = _ark_coding_query()
-    if not query:
-        return {"status": "needs SeatID or ProjectName"}
-    return _limits_cached("ark-coding-limits-cache.json",
-                          lambda: _ark_usage_limits("GetSeatInfoUsage", query, post_body=True))
-
-
 def _with_plan(plan, limits):
     out = {"plan": plan}
     if limits:
@@ -860,15 +839,6 @@ def ark_agent():
     ANTHROPIC_BASE_URL to /api/plan. The plan usage APIs appear to be
     management-plane APIs, so the first UI slice only reports configured state
     and the plan label; exact quota can be added once signing is implemented.
-    """
-    return 0, None, None
-
-
-def ark_coding():
-    """Volcengine Ark Coding Plan via Claude Code-compatible wrappers.
-
-    Local wiring lives in fish functions (`claude-ark-coding` / `arkcp`) that
-    set ANTHROPIC_BASE_URL to /api/coding.
     """
     return 0, None, None
 
@@ -899,8 +869,6 @@ def collect():
     ]
     if _configured_key(ARK_AGENT_KEY):
         rows.append(("ark-agent", *ark_agent(), _with_plan("Agent Plan", ark_agent_limits()), {}, {}))
-    if _configured_key(ARK_CODING_KEY):
-        rows.append(("ark-coding", *ark_coding(), _with_plan("Coding Plan", ark_coding_limits()), {}, {}))
     return rows
 
 

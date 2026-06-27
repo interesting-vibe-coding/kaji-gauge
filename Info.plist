@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>Kaji Gauge</string>
+	<string>Kaji</string>
 	<key>CFBundleExecutable</key>
 	<string>KajiGauge</string>
 	<key>CFBundleIconFile</key>
@@ -11,7 +11,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>dev.kaji.gauge</string>
 	<key>CFBundleName</key>
-	<string>Kaji Gauge</string>
+	<string>Kaji</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -25,6 +25,6 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Kaji Gauge</string>
+	<string>Kaji</string>
 </dict>
 </plist>

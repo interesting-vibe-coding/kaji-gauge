@@ -2,13 +2,11 @@ import SwiftUI
 
 // MARK: - GaugeRowView
 //
-// A horizontal row of ring gauges, one per VISIBLE provider. Shared by both
-// surfaces (the menubar popover and the floating panel) so they always render
-// the same content from the same store. The view sizes to its content — no
-// fixed width — so it adapts to N rings.
+// A status-bar popover panel, one ring per visible provider. S/M/L presets keep
+// layout bounded; there is no draggable floating window surface.
 //
 // The popover passes `controls` (a settings footer: provider toggles, language,
-// floating-panel toggle, quit). The desktop panel passes nil — gauges only.
+// refresh, quit). Snapshot views may pass nil — gauges only.
 struct GaugeRowView: View {
     @ObservedObject var store: QuotaStore
     @ObservedObject var prefs: Prefs
@@ -21,8 +19,7 @@ struct GaugeRowView: View {
     private let defaultRing: CGFloat = 84
 
     struct Controls {
-        let panelVisible: Bool
-        let onTogglePanel: () -> Void
+        let onRefresh: () -> Void
         let onQuit: () -> Void
     }
 
@@ -58,8 +55,7 @@ struct GaugeRowView: View {
         if let panelSize {
             // Popover (has the settings footer): ALWAYS one horizontal row,
             // ring size computed to fill the width for N providers — S/M/L just
-            // scales the whole row proportionally. The floating HUD keeps its
-            // own resize-aware layout (panelRings).
+            // scales the whole row proportionally.
             if controls != nil {
                 popoverRings(panelSize)
             } else {
@@ -226,7 +222,7 @@ struct GaugeRowView: View {
 
             // Usage row: show 5h as USED vs REMAINING. Defaults to USED, which
             // matches the historical ring direction; REMAINING reads "0% means
-            // full" with a reversed trim. The dock strip + menubar follow along.
+            // full" with a reversed trim. The menubar follows along.
             HStack(spacing: 7) {
                 Text(L10n.t(.usage, prefs.language))
                     .font(.system(size: 10.5, weight: .medium))
@@ -256,13 +252,12 @@ struct GaugeRowView: View {
                 }
             }
 
-            // Actions row: floating-panel toggle on the left, quit on the right.
+            // Actions row: refresh on the left, quit on the right.
             HStack(spacing: 12) {
-                Button(action: c.onTogglePanel) {
+                Button(action: c.onRefresh) {
                     HStack(spacing: 5) {
-                        Image(systemName: c.panelVisible
-                              ? "macwindow" : "macwindow.badge.plus")
-                        Text(L10n.t(c.panelVisible ? .hidePanel : .floatPanel, prefs.language))
+                        Image(systemName: "arrow.clockwise")
+                        Text(L10n.t(.refreshNow, prefs.language))
                     }
                 }
                 Spacer(minLength: 10)
@@ -357,10 +352,6 @@ struct GaugeRowView: View {
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .foregroundColor(t.cream)
                 .layoutPriority(2)
-            Text("Gauge")
-                .font(.system(size: 12, weight: .regular, design: .rounded))
-                .foregroundColor(t.mute)
-                .layoutPriority(1)
             Spacer(minLength: 4)
             Text(legend)
                 .font(.system(size: 10))
@@ -397,16 +388,14 @@ struct GaugeRowView: View {
 
 // MARK: - CompactRingRow
 //
-// List-row layout used by the floating HUD when it's been stretched tall +
-// narrow. Same product signature (concentric ring + logo + %), but the label
+// List-row layout retained for compact snapshots / future narrow popovers.
+// Same product signature (concentric ring + logo + %), but the label
 // moves to the RIGHT of the ring instead of below it. Pattern after iStat
 // Menus / MonitorControl / Spotify compact card: [icon] + [text] horizontal,
 // so the text column gets the full panel width and names never truncate to
 // "Clau" / "Cod" / "Mini".
 //
-// Ring size stays fixed at 56pt here — the panel's vertical chrome math is
-// irrelevant in this layout (no label below the ring), so passing a stable
-// value keeps the geometry predictable regardless of how tall the user drags.
+// Ring size stays fixed at 56pt here, so compact rows stay predictable.
 private struct CompactRingRow: View {
     let provider: ProviderView
     var lang: Lang = .en
@@ -488,7 +477,7 @@ private struct CompactRingRow: View {
         let weekDisplayed = weekRaw.map { showRemaining ? (100 - $0) : $0 }
         let week = weekDisplayed.map { "\(Int($0.rounded()))%" } ?? "\u{2014}"
         let fiveReset = ResetFormat.phrase(provider.resetDate, lang)
-        let weekReset = ResetFormat.phrase(provider.weekResetDate, lang)
+        let weekReset = ResetFormat.absolute(provider.weekResetDate)
         return VStack(alignment: .leading, spacing: 4) {
             // Primary: provider name (semibold 13pt, cream).
             Text(provider.displayName)
