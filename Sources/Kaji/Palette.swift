@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - KajiTheme (Auto: Kaji Ember dark / Kaji Sun light)
+// MARK: - KajiTheme (Auto: Kaji Graphite dark / Kaji Paper light)
 //
 // The two Kaji palettes as plain value types, selected by the SwiftUI
 // `\.colorScheme` environment. Views read `@Environment(\.colorScheme)` and call
@@ -8,9 +8,9 @@ import SwiftUI
 // Dark, deterministically (no NSColor dynamic-resolution quirks).
 //
 // Hexes are the product's ground truth:
-//   - dark  "Kaji Ember": warm charcoal + cream + ember gold.
-//   - light "Kaji Sun":   warm paper + ink + ochre gold.
-// SUN persimmon is the one brand accent, identical in both.
+//   - dark  "Kaji Graphite": graphite utility surfaces + restrained copper.
+//   - light "Kaji Paper":    soft system paper + ink + muted copper.
+// Copper is intentionally lower-saturation than the old bright persimmon.
 struct KajiTheme {
     let bg: Color      // window / popover background (bottom of gradient)
     let bgTop: Color   // top of the warm background gradient
@@ -20,37 +20,37 @@ struct KajiTheme {
     let ash: Color     // faint / disabled
     let track: Color   // ring background track
     let gold: Color    // normal ring value arc
-    let amber: Color   // near-limit (>=80%): deeper, same warm family
-    let sun: Color     // Kaji brand persimmon — header dot
+    let amber: Color   // near-limit (>=80%): deeper copper, same family
+    let sun: Color     // Kaji brand copper — header dot
 
     static func resolve(_ scheme: ColorScheme) -> KajiTheme {
         scheme == .dark ? .dark : .light
     }
 
     static let dark = KajiTheme(
-        bg:    Color(hex: 0x16100B),
-        bgTop: Color(hex: 0x1F170F),
-        panel: Color(hex: 0x1D160F),
-        cream: Color(hex: 0xECE4D6),
-        mute:  Color(hex: 0x9C9283),
-        ash:   Color(hex: 0x665E53),
-        track: Color(hex: 0x3A3026),
-        gold:  Color(hex: 0xD8A657),
-        amber: Color(hex: 0xC87A2A),
-        sun:   Color(hex: 0xF25C05)
+        bg:    Color(hex: 0x151514),
+        bgTop: Color(hex: 0x1C1C1A),
+        panel: Color(hex: 0x20201E),
+        cream: Color(hex: 0xEDEAE4),
+        mute:  Color(hex: 0x9B968D),
+        ash:   Color(hex: 0x615D55),
+        track: Color(hex: 0x35322D),
+        gold:  Color(hex: 0xB98259),
+        amber: Color(hex: 0xC66E42),
+        sun:   Color(hex: 0xA76540)
     )
 
     static let light = KajiTheme(
-        bg:    Color(hex: 0xFBF8F2),
-        bgTop: Color(hex: 0xFFFDF8),
-        panel: Color(hex: 0xFEFBF5),
-        cream: Color(hex: 0x211C15), // ink
-        mute:  Color(hex: 0x8A8174),
-        ash:   Color(hex: 0xB5AB9C),
-        track: Color(hex: 0xE2D8C6),
-        gold:  Color(hex: 0xF25C05), // Kaji persimmon — the ring on paper (ochre felt off)
-        amber: Color(hex: 0xC2410C), // >=80%: deeper persimmon, same family
-        sun:   Color(hex: 0xF25C05)
+        bg:    Color(hex: 0xF7F5F1),
+        bgTop: Color(hex: 0xFCFBF8),
+        panel: Color(hex: 0xFEFCF8),
+        cream: Color(hex: 0x24231F), // ink
+        mute:  Color(hex: 0x77736B),
+        ash:   Color(hex: 0xB8B1A5),
+        track: Color(hex: 0xE4DFD5),
+        gold:  Color(hex: 0xA76540),
+        amber: Color(hex: 0x8F4B2F),
+        sun:   Color(hex: 0xA76540)
     )
 }
 

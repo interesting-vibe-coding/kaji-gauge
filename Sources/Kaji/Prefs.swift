@@ -13,8 +13,8 @@ import CoreGraphics
 //     the macOS locale.
 //   - menubarStyle: how the menu-bar glyph reads. `.mono` (default) draws the
 //     rings + provider logo in the adaptive label color, so the app sits quietly
-//     among the native monochrome menu-bar icons. `.color` draws them in warm
-//     persimmon for more presence. The popover/panel are always in full color.
+//     among the native monochrome menu-bar icons. `.color` draws them in muted
+//     copper for more presence. The popover/panel are always in full color.
 @MainActor
 final class Prefs: ObservableObject {
     @Published var visibleProviders: Set<String> {
@@ -107,7 +107,7 @@ enum Lang: String {
 
 enum MenubarStyle: String {
     case mono     // adaptive label color — sits among native monochrome icons
-    case color    // warm persimmon — more presence
+    case color    // muted copper — more presence
 
     var toggled: MenubarStyle { self == .mono ? .color : .mono }
 }

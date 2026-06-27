@@ -345,8 +345,7 @@ struct GaugeRowView: View {
         let density = max(1, shown.count)
         let scale: CGFloat = density >= 3 ? 1.0 : (density == 2 ? 0.90 : 0.78)
         return HStack(spacing: 6) {
-            // Theme-aware accent dot: persimmon by day (Sun), ember gold by
-            // night (Ember) — matches the rings instead of staying orange.
+            // Theme-aware accent dot: muted copper, matched to the rings.
             Circle().fill(t.gold).frame(width: 7, height: 7)
             Text("Kaji")
                 .font(.system(size: 12, weight: .semibold, design: .rounded))

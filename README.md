@@ -13,11 +13,11 @@ Kaji 会在长任务撞上额度墙之前提醒你。它本地优先、原生、
 
 [中文](README.zh.md)
 
-<a href="https://github.com/interesting-vibe-coding/kaji/releases/latest"><img src="https://img.shields.io/github/v/release/interesting-vibe-coding/kaji?color=F25C05&label=release&labelColor=1A1A1A" alt="latest release"></a>
-<a href="https://github.com/interesting-vibe-coding/kaji/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/interesting-vibe-coding/kaji/ci.yml?branch=main&label=build&labelColor=1A1A1A&color=F25C05" alt="build status"></a>
-<a href="https://github.com/interesting-vibe-coding/kaji/stargazers"><img src="https://img.shields.io/github/stars/interesting-vibe-coding/kaji?style=flat&label=stars&labelColor=1A1A1A&color=F25C05" alt="GitHub stars"></a>
-<img src="https://img.shields.io/badge/macOS-13%2B%20%C2%B7%20Apple%20Silicon-F25C05?labelColor=1A1A1A" alt="macOS 13+, Apple Silicon">
-<a href="LICENSE"><img src="https://img.shields.io/github/license/interesting-vibe-coding/kaji?color=F25C05&labelColor=1A1A1A" alt="MIT license"></a>
+<a href="https://github.com/interesting-vibe-coding/kaji/releases/latest"><img src="https://img.shields.io/github/v/release/interesting-vibe-coding/kaji?color=A76540&label=release&labelColor=1A1A1A" alt="latest release"></a>
+<a href="https://github.com/interesting-vibe-coding/kaji/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/interesting-vibe-coding/kaji/ci.yml?branch=main&label=build&labelColor=1A1A1A&color=A76540" alt="build status"></a>
+<a href="https://github.com/interesting-vibe-coding/kaji/stargazers"><img src="https://img.shields.io/github/stars/interesting-vibe-coding/kaji?style=flat&label=stars&labelColor=1A1A1A&color=A76540" alt="GitHub stars"></a>
+<img src="https://img.shields.io/badge/macOS-13%2B%20%C2%B7%20Apple%20Silicon-A76540?labelColor=1A1A1A" alt="macOS 13+, Apple Silicon">
+<a href="LICENSE"><img src="https://img.shields.io/github/license/interesting-vibe-coding/kaji?color=A76540&labelColor=1A1A1A" alt="MIT license"></a>
 
 <br>
 <br>

@@ -90,9 +90,9 @@ struct Snap {
                     // A subtle translucent menu-bar slab over a hint of wallpaper.
                     ZStack {
                         (scheme == .dark
-                            ? LinearGradient(colors: [Color(hex: 0x3A332B), Color(hex: 0x2A2622)],
+                            ? LinearGradient(colors: [Color(hex: 0x2C2C2A), Color(hex: 0x1E1E1C)],
                                              startPoint: .topLeading, endPoint: .bottomTrailing)
-                            : LinearGradient(colors: [Color(hex: 0xF4F1EB), Color(hex: 0xE7E2D9)],
+                            : LinearGradient(colors: [Color(hex: 0xF7F5F1), Color(hex: 0xE7E1D6)],
                                              startPoint: .topLeading, endPoint: .bottomTrailing))
                     }
                 )

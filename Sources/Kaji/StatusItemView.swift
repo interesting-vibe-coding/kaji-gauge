@@ -15,7 +15,7 @@ import SwiftUI
 // Style (Prefs.menubarStyle):
 //   - .mono  (default) — adaptive label color, so it sits quietly among the
 //     native monochrome menu-bar icons. Near-limit thickens the outer arc.
-//   - .color — warm persimmon, for more presence.
+//   - .color — muted copper, for more presence.
 struct StatusItemView: View {
     let providers: [ProviderView]
     var style: MenubarStyle = .mono
@@ -72,9 +72,7 @@ private struct DualRing: View {
 
     // Base color:
     //   - mono  → adaptive label color, to sit with the native monochrome icons.
-    //   - color → the Kaji ring color, which is theme-aware on purpose: vibrant
-    //     persimmon by day (Kaji Sun), warm ember gold by night (Kaji Ember).
-    //     Day = energetic, night = quiet luxury — and it matches the popover ring.
+    //   - color → muted copper, matched to the popover ring.
     private var base: Color {
         switch style {
         case .mono:  return scheme == .dark ? .white : .black
@@ -84,8 +82,8 @@ private struct DualRing: View {
     private var innerColor: Color { base.opacity(style == .mono ? 0.42 : 0.5) }
     // Track: a faint tint of the base in mono (so the glyph sits quietly with the
     // native monochrome icons), but a NEUTRAL warm-grey track in color — exactly
-    // like the popover ring. That way only the arcs read as persimmon and the
-    // ring breathes, instead of the whole glyph becoming a solid orange blob.
+    // like the popover ring. That way only the arcs carry color and the ring
+    // breathes, instead of the whole glyph becoming a solid blob.
     private var trackColor: Color {
         switch style {
         case .mono:  return base.opacity(0.22)
