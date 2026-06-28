@@ -9,10 +9,15 @@ import Foundation
 final class SleepController: ObservableObject {
     @Published private(set) var isEnabled = false
     @Published private(set) var isBusy = false
+    @Published private(set) var targetEnabled: Bool?
     @Published private(set) var lastError: String?
 
-    init() {
-        refresh()
+    init(previewEnabled: Bool? = nil) {
+        if let previewEnabled {
+            isEnabled = previewEnabled
+        } else {
+            refresh()
+        }
     }
 
     func refresh() {
@@ -26,11 +31,13 @@ final class SleepController: ObservableObject {
     func setEnabled(_ enabled: Bool) {
         if isBusy { return }
         isBusy = true
+        targetEnabled = enabled
         lastError = nil
         Task {
             let ok = await Self.runPrivilegedPmset(disabled: enabled)
             await MainActor.run {
                 self.isBusy = false
+                self.targetEnabled = nil
                 self.refresh()
                 if !ok {
                     self.lastError = "pmset_failed"

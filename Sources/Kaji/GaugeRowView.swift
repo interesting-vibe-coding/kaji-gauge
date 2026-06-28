@@ -290,10 +290,12 @@ struct GaugeRowView: View {
                     .font(.system(size: 10.5, weight: .medium))
                     .foregroundColor(t.mute)
                 Spacer(minLength: 8)
-                segment(L10n.t(.keepAwake, prefs.language), on: sleepController.isEnabled) {
+                statusChip(keepAwakeTitle,
+                           filled: sleepController.isEnabled,
+                           emphasized: sleepController.isBusy || sleepController.lastError != nil) {
                     c.onToggleKeepAwake()
                 }
-                .opacity(sleepController.isBusy ? 0.55 : 1)
+                .disabled(sleepController.isBusy)
                 Button(action: c.onUpdate) {
                     Text(updateTitle)
                         .font(.system(size: 10.5, weight: .semibold, design: .rounded))
@@ -308,6 +310,7 @@ struct GaugeRowView: View {
                         )
                 }
                 .buttonStyle(.plain)
+                .disabled(updateChecker.isChecking)
             }
 
             // Actions row: refresh on the left, quit on the right.
@@ -331,7 +334,30 @@ struct GaugeRowView: View {
         if let release = updateChecker.available {
             return L10n.t(.updateTo, prefs.language) + " " + release.tag
         }
+        if updateChecker.isChecking {
+            return L10n.t(.updateChecking, prefs.language)
+        }
+        if updateChecker.lastError != nil {
+            return L10n.t(.updateFailed, prefs.language)
+        }
+        if updateChecker.lastChecked != nil {
+            return L10n.t(.updateCurrent, prefs.language)
+        }
         return L10n.t(.checkUpdates, prefs.language)
+    }
+
+    private var keepAwakeTitle: String {
+        if let target = sleepController.targetEnabled, sleepController.isBusy {
+            return target
+                ? L10n.t(.keepAwakeTurningOn, prefs.language)
+                : L10n.t(.keepAwakeTurningOff, prefs.language)
+        }
+        if sleepController.lastError != nil {
+            return L10n.t(.keepAwakeFailed, prefs.language)
+        }
+        return sleepController.isEnabled
+            ? L10n.t(.keepAwakeOn, prefs.language)
+            : L10n.t(.keepAwakeOff, prefs.language)
     }
 
     // A small toggle chip: filled (warm) when on, outlined when off.
@@ -365,6 +391,28 @@ struct GaugeRowView: View {
                     Capsule()
                         .fill(on ? t.gold : Color.clear)
                         .overlay(Capsule().stroke(on ? Color.clear : t.track, lineWidth: 1))
+                )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func statusChip(_ title: String, filled: Bool, emphasized: Bool,
+                            action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 10.5, weight: .semibold, design: .rounded))
+                .foregroundColor(filled ? t.bg : t.mute)
+                .lineLimit(1)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 3)
+                .background(
+                    Capsule()
+                        .fill(filled ? t.gold : Color.clear)
+                        .overlay(
+                            Capsule()
+                                .stroke(emphasized ? t.gold.opacity(0.75) : (filled ? Color.clear : t.track),
+                                        lineWidth: 1)
+                        )
                 )
         }
         .buttonStyle(.plain)

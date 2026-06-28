@@ -84,13 +84,13 @@ struct Snap {
             let panel = GaugeRowView(store: QuotaStore(previewProviders: mocks, updated: Date()),
                                      prefs: prefs,
                                      updateChecker: UpdateChecker(),
-                                     sleepController: SleepController(),
+                                     sleepController: SleepController(previewEnabled: false),
                                      panelSize: prefs.panelSize)
             let popover = GaugeRowView(
                 store: QuotaStore(previewProviders: mocks, updated: Date()),
                 prefs: prefs,
                 updateChecker: UpdateChecker(),
-                sleepController: SleepController(),
+                sleepController: SleepController(previewEnabled: false),
                 controls: .init(onRefresh: {}, onUpdate: {}, onToggleKeepAwake: {}, onQuit: {}),
                 panelSize: prefs.panelSize
             )

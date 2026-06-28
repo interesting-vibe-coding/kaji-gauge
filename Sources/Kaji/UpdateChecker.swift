@@ -28,6 +28,9 @@ final class UpdateChecker: ObservableObject {
 
     /// nil = up to date / unknown; non-nil = a strictly newer release exists.
     @Published private(set) var available: Release?
+    @Published private(set) var isChecking = false
+    @Published private(set) var lastChecked: Date?
+    @Published private(set) var lastError: String?
 
     private let session = URLSession(configuration: .ephemeral)
     private var lastCheck: Date?
@@ -51,21 +54,35 @@ final class UpdateChecker: ObservableObject {
         // a single in-flight request. Safe to read/write unguarded: @MainActor.
         if inFlight { return }
         inFlight = true
-        defer { inFlight = false }
-        guard let url = URL(string: "https://api.github.com/repos/\(Self.repo)/releases/latest") else { return }
+        isChecking = true
+        lastError = nil
+        defer {
+            inFlight = false
+            isChecking = false
+        }
+        guard let url = URL(string: "https://api.github.com/repos/\(Self.repo)/releases/latest") else {
+            lastError = "bad_url"
+            return
+        }
         var req = URLRequest(url: url)
         req.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         req.setValue("Kaji", forHTTPHeaderField: "User-Agent")
         req.timeoutInterval = 12
         do {
             let (data, resp) = try await session.data(for: req)
-            guard let http = resp as? HTTPURLResponse, http.statusCode == 200,
-                  let obj = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+            guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else {
+                lastError = "http"
+                return
+            }
+            guard let obj = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                   (obj["draft"] as? Bool) != true,
                   (obj["prerelease"] as? Bool) != true,
                   let tag = obj["tag_name"] as? String,
                   let htmlURL = (obj["html_url"] as? String).flatMap(URL.init(string:))
-            else { return }
+            else {
+                lastError = "parse"
+                return
+            }
             let assetURL = Self.zipAssetURL(from: obj)
             let latest = Self.normalize(tag)
             if Self.isNewer(latest, than: Self.normalize(currentVersion)) {
@@ -73,8 +90,10 @@ final class UpdateChecker: ObservableObject {
             } else {
                 available = nil
             }
+            lastChecked = Date()
         } catch {
-            // Offline / rate-limited / transient — stay silent, retry next due.
+            // Offline / rate-limited / transient.
+            lastError = "network"
         }
     }
 
