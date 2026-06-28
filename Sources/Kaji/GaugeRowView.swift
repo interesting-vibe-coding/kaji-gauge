@@ -291,7 +291,7 @@ struct GaugeRowView: View {
                     .foregroundColor(t.mute)
                 Spacer(minLength: 8)
                 statusChip(keepAwakeTitle,
-                           filled: sleepController.isEnabled,
+                           filled: keepAwakeIsActive,
                            emphasized: sleepController.isBusy || sleepController.lastError != nil) {
                     c.onToggleKeepAwake()
                 }
@@ -358,6 +358,10 @@ struct GaugeRowView: View {
         return sleepController.isEnabled
             ? L10n.t(.keepAwakeOn, prefs.language)
             : L10n.t(.keepAwakeOff, prefs.language)
+    }
+
+    private var keepAwakeIsActive: Bool {
+        sleepController.targetEnabled ?? sleepController.isEnabled
     }
 
     // A small toggle chip: filled (warm) when on, outlined when off.

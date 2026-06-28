@@ -61,10 +61,14 @@ final class SleepController: ObservableObject {
         }
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         guard let out = String(data: data, encoding: .utf8) else { return false }
-        return out
-            .split(separator: "\n")
+        return parseSleepDisabled(out)
+    }
+
+    static func parseSleepDisabled(_ output: String) -> Bool {
+        output
+            .split(whereSeparator: \.isNewline)
             .contains { line in
-                let parts = line.split(separator: " ", omittingEmptySubsequences: true)
+                let parts = line.split(whereSeparator: \.isWhitespace)
                 return parts.count >= 2 && parts[0] == "SleepDisabled" && parts[1] == "1"
             }
     }
